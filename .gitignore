@@ -1,0 +1,16 @@
+# Design assets and outputs stay local (large / private)
+*.psd
+/*.png
+/Backgrounds/
+/Stickers/
+/Generated Templates/
+/Deleted Files/
+
+# Built app and build caches
+*.app
+studio/node_modules/
+studio/src-tauri/target/
+studio/src-tauri/gen/
+__pycache__/
+
+.DS_Store

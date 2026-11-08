@@ -1,0 +1,21 @@
+[package]
+name = "photobooth-studio"
+version = "1.0.0"
+description = "Design photobooth grid frames, add photos and stickers, export PNGs"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde_json = { version = "1", features = ["preserve_order"] }
+trash = "5"
+urlencoding = "2"
+fontdb = "0.22"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
