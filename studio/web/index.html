@@ -245,8 +245,11 @@ kbd{font:11px ui-monospace,SFMono-Regular,monospace;background:var(--panel2);bor
 .cp-label{font-size:11px;color:var(--subtle);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
 .cp-sw{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
 .cp-sw button{aspect-ratio:1;padding:0;border-radius:6px;border:1px solid #0008;box-shadow:inset 0 0 0 1px #fff2}
-body.eyedrop .stage,body.eyedrop #cv,body.rmbgtool .stage,body.rmbgtool #cv{cursor:crosshair}
-#rmbgWand.on,#rmbgBoxTool.on{background:var(--accent);color:#fff;border-color:var(--accent-hi)}
+body.eyedrop .stage,body.eyedrop #cv{cursor:crosshair}
+body.tool-wand .stage,body.tool-wand #cv{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2228%22%20height%3D%2228%22%20viewBox%3D%220%200%2028%2028%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cg%20stroke%3D%22%23000%22%20stroke-width%3D%224%22%3E%3Cpath%20d%3D%22M3%2025%2016%2012%22/%3E%3Cpath%20d%3D%22M19%203v4M17%205h4M24%208v3M22.5%209.5h3M13%204v2.5M11.8%205.2h2.5%22/%3E%3C/g%3E%3Cg%20stroke%3D%22%23fff%22%20stroke-width%3D%221.8%22%3E%3Cpath%20d%3D%22M3%2025%2016%2012%22/%3E%3Cpath%20d%3D%22M19%203v4M17%205h4M24%208v3M22.5%209.5h3M13%204v2.5M11.8%205.2h2.5%22/%3E%3C/g%3E%3C/svg%3E") 3 25, crosshair}
+body.tool-lasso-erase .stage,body.tool-lasso-erase #cv{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2228%22%20height%3D%2228%22%20viewBox%3D%220%200%2028%2028%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cg%20stroke%3D%22%23000%22%20stroke-width%3D%224%22%3E%3Cellipse%20cx%3D%2215%22%20cy%3D%2210%22%20rx%3D%2210%22%20ry%3D%226%22/%3E%3Cpath%20d%3D%22M8%2015c-2%202-3%205-1%207s4%200%204-2%22/%3E%3Cpath%20d%3D%22M19%2022h7%22/%3E%3C/g%3E%3Cg%20stroke%3D%22%23fff%22%20stroke-width%3D%221.8%22%3E%3Cellipse%20cx%3D%2215%22%20cy%3D%2210%22%20rx%3D%2210%22%20ry%3D%226%22/%3E%3Cpath%20d%3D%22M8%2015c-2%202-3%205-1%207s4%200%204-2%22/%3E%3Cpath%20d%3D%22M19%2022h7%22/%3E%3C/g%3E%3C/svg%3E") 7 22, crosshair}
+body.tool-lasso-restore .stage,body.tool-lasso-restore #cv{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2228%22%20height%3D%2228%22%20viewBox%3D%220%200%2028%2028%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cg%20stroke%3D%22%23000%22%20stroke-width%3D%224%22%3E%3Cellipse%20cx%3D%2215%22%20cy%3D%2210%22%20rx%3D%2210%22%20ry%3D%226%22/%3E%3Cpath%20d%3D%22M8%2015c-2%202-3%205-1%207s4%200%204-2%22/%3E%3Cpath%20d%3D%22M19%2022h7M22.5%2018.5v7%22/%3E%3C/g%3E%3Cg%20stroke%3D%22%23fff%22%20stroke-width%3D%221.8%22%3E%3Cellipse%20cx%3D%2215%22%20cy%3D%2210%22%20rx%3D%2210%22%20ry%3D%226%22/%3E%3Cpath%20d%3D%22M8%2015c-2%202-3%205-1%207s4%200%204-2%22/%3E%3Cpath%20d%3D%22M19%2022h7M22.5%2018.5v7%22/%3E%3C/g%3E%3C/svg%3E") 7 22, crosshair}
+#rmbgWand.on,#rmbgLassoErase.on,#rmbgLassoRestore.on{background:var(--accent);color:#fff;border-color:var(--accent-hi)}
 
 /* ---------- font picker ---------- */
 .fontbtn{width:160px;flex:none;display:flex;align-items:center;gap:6px;padding:7px 10px;text-align:left}
@@ -379,11 +382,6 @@ body.eyedrop .stage,body.eyedrop #cv,body.rmbgtool .stage,body.rmbgtool #cv{curs
       <label id="gradAngleRow">Angle <b class="val" id="v_grad_angle"></b><input type="range" id="grad_angle" min="0" max="360"></label>
       <div class="tiles grad-presets" id="gradPresets" title="Presets"></div>
     </div>
-    <label class="adv">Photo slots
-      <select id="slot"><option value="transparent">See-through</option><option value="#ffffff">White</option></select>
-    </label>
-    <label class="adv">Rounded corners <input type="number" id="radius" min="0" step="2" title="Corner radius of the photo slots, in px"></label>
-    <label title="Drag right for rounder corners; all the way = fully round ends">Rounded corners <b class="val" id="v_radiusRange">0px</b><input type="range" id="radiusRange" min="0" step="1"></label>
     <div class="drop" id="bgDrop">Drop or paste (⌘V) a background image<br>or click to choose</div>
     <div class="tiles bg-tiles" id="bgList"></div>
     <div id="bgImageOpts">
@@ -403,6 +401,15 @@ body.eyedrop .stage,body.eyedrop #cv,body.rmbgtool .stage,body.rmbgtool #cv{curs
     <h2 style="margin-top:16px">Paper texture</h2>
     <div class="tiles tex-tiles" id="texTiles"></div>
     <label id="texStrengthRow" title="How strong the texture is">Strength <b class="val" id="v_tex_strength"></b><input type="range" id="tex_strength" min="5" max="100"></label>
+  </section>
+
+  <section data-tool="background">
+    <h2>Photo slots</h2>
+    <label title="Drag right for rounder corners; all the way = fully round ends">Rounded corners <b class="val" id="v_radiusRange">0px</b><input type="range" id="radiusRange" min="0" step="1"></label>
+    <label class="adv">Corner size <input type="number" id="radius" min="0" step="2" title="Corner radius of the photo slots, in px"></label>
+    <label class="adv">Slots in the PNG
+      <select id="slot"><option value="transparent">See-through</option><option value="#ffffff">White</option></select>
+    </label>
   </section>
 
   <section data-tool="pattern">
@@ -513,9 +520,10 @@ body.eyedrop .stage,body.eyedrop #cv,body.rmbgtool .stage,body.rmbgtool #cv{curs
           <button type="button" data-inside="all" title="Remove the background colour everywhere, e.g. the holes in O, A, B">Everywhere</button>
         </div>
         <div class="cp-label" style="margin:12px 0 6px">Touch up</div>
-        <div class="row" style="margin-top:0"><button type="button" id="rmbgWand" title="Click an area on the sticker to remove it (and everything connected of a similar colour)">Click to remove</button><button type="button" id="rmbgBoxTool" title="Drag a box on the sticker to erase everything inside it">Erase a box</button></div>
+        <div class="row" style="margin-top:0"><button type="button" id="rmbgWand" title="Click an area on the sticker to remove it (and everything connected of a similar colour)">Click to remove</button></div>
+        <div class="row" style="margin-top:6px"><button type="button" id="rmbgLassoErase" title="Draw a loop around something to erase it">Lasso erase</button><button type="button" id="rmbgLassoRestore" title="Draw a loop around a part to bring the original back">Lasso restore</button></div>
         <p class="sub" id="rmbgHint" style="font-size:12px;margin:6px 0 0"></p>
-        <div class="row"><button type="button" id="rmbgClearEdits" class="ghost">Undo clicks &amp; boxes</button><button type="button" id="selRmbgDone" title="Keep the result and crop the empty space around it">Finish &amp; trim</button></div>
+        <div class="row"><button type="button" id="rmbgClearEdits" class="ghost">Undo all touch-ups</button><button type="button" id="selRmbgDone" title="Keep the result and crop the empty space around it">Finish &amp; trim</button></div>
       </div>
     </div>
     <label title="Colour the sticker"><span>Tint</span><input type="checkbox" id="selTint"></label>
@@ -980,7 +988,7 @@ function detectBackground(src){
   return close >= opaque.length * 0.6 ? rgbToHex(...bg) : null;
 }
 function removeBackground(src, o, cache = null){   // cache: colour distances reused while you drag the sliders
-  const {c, x, im, w, h} = imagePixels(src), d = im.data, N = w*h;
+  const {c, x, im, w, h} = imagePixels(src), d = im.data, N = w*h, original = new Uint8ClampedArray(d);
   const B = hexToRgb(parseColor(o.color) || "#ffffff"), bl = rgbToLab(...B);
   const tol = 2 + o.tolerance * 0.45;                 // slider 0–100 → colour distance (ΔE) 2–47
   let dist;
@@ -1082,6 +1090,19 @@ function removeBackground(src, o, cache = null){   // cache: colour distances re
     const x0 = Math.max(0, Math.floor(Math.min(r.x0, r.x1) * w)), x1 = Math.min(w, Math.ceil(Math.max(r.x0, r.x1) * w));
     const y0 = Math.max(0, Math.floor(Math.min(r.y0, r.y1) * h)), y1 = Math.min(h, Math.ceil(Math.max(r.y0, r.y1) * h));
     for (let y = y0; y < y1; y++) for (let x2 = x0; x2 < x1; x2++) d[(y*w + x2)*4 + 3] = 0;
+  }
+  // lassos, in the order drawn: erase fades out what's inside; restore brings back the original picture
+  if (o.lasso?.length){
+    const m = document.createElement("canvas"); m.width = w; m.height = h; const mx = m.getContext("2d", {willReadFrequently: true});
+    for (const L of o.lasso){
+      if (!L.pts || L.pts.length < 3) continue;
+      mx.clearRect(0, 0, w, h); mx.fillStyle = "#000"; mx.beginPath();
+      L.pts.forEach(([u, v], i) => i ? mx.lineTo(u*w, v*h) : mx.moveTo(u*w, v*h)); mx.closePath(); mx.fill();
+      const md = mx.getImageData(0, 0, w, h).data;
+      for (let i = 0; i < N; i++){ const a = md[i*4 + 3]; if (!a) continue; const p = i*4, t = a / 255;
+        if (L.mode === "erase") d[p+3] = Math.round(d[p+3] * (1 - t));
+        else for (let k = 0; k < 4; k++) d[p+k] = Math.round(d[p+k] * (1 - t) + original[p+k] * t); }
+    }
   }
   x.putImageData(im, 0, 0);
   return c;
@@ -1438,6 +1459,7 @@ cv.addEventListener("pointerdown", e => {
 });
 cv.addEventListener("pointermove", e => {
   const [px, py] = canvasPoint(e);
+  if (!drag && (rmbgTool || eyedrop)){ cv.style.cursor = ""; return; }   // the tool's own pointer (set in CSS)
   if (!drag){
     const h = st.sel && handleAt(st.sel, px, py);
     cv.style.cursor = h === "del" ? "pointer" : h === "rot" ? "grab" : h === "scale" ? "nwse-resize"
@@ -1981,7 +2003,7 @@ function fillShadow(prefix, sh){
 }
 const lastShadow = {sel: null, cap: null};
 /* remove background */
-const RMBG_DEFAULT = {color: "#ffffff", tolerance: 25, soft: 2, inside: "gaps", clicks: [], boxes: []};
+const RMBG_DEFAULT = {color: "#ffffff", tolerance: 25, soft: 2, inside: "gaps", clicks: [], boxes: [], lasso: []};
 const rmbgCopy = r => r ? JSON.parse(JSON.stringify(r)) : null;
 function fillRmbg(s){
   const on = !!s.rmbg; $("#rmbgBox").hidden = s.kind === "text";
@@ -1990,12 +2012,13 @@ function fillRmbg(s){
   $("#selRmbgColor").value = parseColor(v.color) || "#ffffff"; $("#selRmbgTol").value = v.tolerance; $("#selRmbgSoft").value = v.soft;
   const ins = v.inside === true ? "all" : v.inside || "none";
   for (const b of document.querySelectorAll("#selRmbgInsideSeg button")) b.classList.toggle("on", b.dataset.inside === ins);
-  const edits = (v.clicks?.length || 0) + (v.boxes?.length || 0);
+  const nLasso = v.lasso?.length || 0, edits = (v.clicks?.length || 0) + (v.boxes?.length || 0) + nLasso;
   $("#rmbgClearEdits").disabled = !edits;
   if (!on) setRmbgTool(null);
   $("#rmbgHint").textContent = rmbgTool === "wand" ? "Click an area on the sticker to remove it. Esc when done."
-    : rmbgTool === "box" ? "Drag a box over what you want to erase. Esc when done."
-    : edits ? `${v.clicks.length} click${v.clicks.length === 1 ? "" : "s"}, ${v.boxes.length} box${v.boxes.length === 1 ? "" : "es"} applied` : "";
+    : rmbgTool === "lasso-erase" ? "Draw a loop around what you want to erase. Esc when done."
+    : rmbgTool === "lasso-restore" ? "Draw a loop around a part to bring the original back. Esc when done."
+    : edits ? `${edits} touch-up${edits === 1 ? "" : "s"} applied` : "";
   paintRanges();
 }
 let rmbgPending = 0;
@@ -2022,13 +2045,15 @@ for (const b of document.querySelectorAll("#selRmbgInsideSeg button")) b.onclick
 /* touch-up tools on the canvas: click to remove an area, or drag a box to erase */
 let rmbgTool = null, rmbgDrag = null;
 function setRmbgTool(t){
-  rmbgTool = t; document.body.classList.toggle("rmbgtool", !!t);
-  $("#rmbgWand").classList.toggle("on", t === "wand"); $("#rmbgBoxTool").classList.toggle("on", t === "box");
+  rmbgTool = t;
+  for (const k of ["wand", "lasso-erase", "lasso-restore"]) document.body.classList.toggle("tool-" + k, t === k);   // each tool has its own pointer
+  $("#rmbgWand").classList.toggle("on", t === "wand"); $("#rmbgLassoErase").classList.toggle("on", t === "lasso-erase"); $("#rmbgLassoRestore").classList.toggle("on", t === "lasso-restore");
   if (!t) rmbgDrag = null;
+  cv.style.cursor = "";
 }
-$("#rmbgWand").onclick = () => { setRmbgTool(rmbgTool === "wand" ? null : "wand"); if (st.sel) fillRmbg(st.sel); };
-$("#rmbgBoxTool").onclick = () => { setRmbgTool(rmbgTool === "box" ? null : "box"); if (st.sel) fillRmbg(st.sel); };
-$("#rmbgClearEdits").onclick = () => { const s = st.sel; if (!s?.rmbg) return; pushHistory(); s.rmbg.clicks = []; s.rmbg.boxes = []; fillRmbg(s); applyRmbg(s); };
+for (const [id, t] of [["#rmbgWand", "wand"], ["#rmbgLassoErase", "lasso-erase"], ["#rmbgLassoRestore", "lasso-restore"]])
+  $(id).onclick = () => { setRmbgTool(rmbgTool === t ? null : t); if (st.sel) fillRmbg(st.sel); };
+$("#rmbgClearEdits").onclick = () => { const s = st.sel; if (!s?.rmbg) return; pushHistory(); s.rmbg.clicks = []; s.rmbg.boxes = []; s.rmbg.lasso = []; fillRmbg(s); applyRmbg(s); };
 /* a point on the canvas → position on the sticker's own picture (0–1), on whichever copy was hit */
 function stickerUV(s, px, py){
   const [w, h] = stickerSize(s);
@@ -2043,29 +2068,30 @@ stage.addEventListener("pointerdown", e => {
   const s = st.sel; if (!s?.rmbg){ setRmbgTool(null); return; }
   const [px, py] = canvasPoint(e), hit = stickerUV(s, px, py);
   e.preventDefault(); e.stopPropagation();
-  if (!hit) return toast("Click on the selected sticker");
+  if (!hit) return toast("Start on the selected sticker");
   if (rmbgTool === "wand"){ pushHistory(); s.rmbg.clicks.push({x: hit.u, y: hit.v}); fillRmbg(s); applyRmbg(s); }
-  else { rmbgDrag = {s, pos: hit.pos, u0: hit.u, v0: hit.v, u1: hit.u, v1: hit.v}; }
+  else rmbgDrag = {s, pos: hit.pos, mode: rmbgTool === "lasso-restore" ? "restore" : "erase", pts: [[hit.u, hit.v]]};
 }, true);
 window.addEventListener("pointermove", e => {
   if (!rmbgDrag) return;
   const s = rmbgDrag.s, [w, h] = stickerSize(s), [px, py] = canvasPoint(e);
   let [lx, ly] = toLocal(s, px, py, rmbgDrag.pos); if (s.flip) lx = -lx;
-  rmbgDrag.u1 = Math.max(0, Math.min(1, lx / w + 0.5)); rmbgDrag.v1 = Math.max(0, Math.min(1, ly / h + 0.5)); render();
+  const u = lx / w + 0.5, v = ly / h + 0.5, last = rmbgDrag.pts[rmbgDrag.pts.length - 1];
+  if (Math.hypot((u - last[0]) * w, (v - last[1]) * h) > 2 * k()){ rmbgDrag.pts.push([u, v]); render(); }   // a point every couple of screen pixels
 });
 window.addEventListener("pointerup", () => {
   if (!rmbgDrag) return;
   const r = rmbgDrag, s = r.s; rmbgDrag = null;
-  if (Math.abs(r.u1 - r.u0) > 0.003 && Math.abs(r.v1 - r.v0) > 0.003){ pushHistory(); s.rmbg.boxes.push({x0: r.u0, y0: r.v0, x1: r.u1, y1: r.v1}); fillRmbg(s); applyRmbg(s); }
+  if (r.pts.length >= 3){ pushHistory(); s.rmbg.lasso = s.rmbg.lasso || []; s.rmbg.lasso.push({mode: r.mode, pts: r.pts.map(([u, v]) => [+u.toFixed(5), +v.toFixed(5)])}); fillRmbg(s); applyRmbg(s); }
   render();
 });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && rmbgTool){ setRmbgTool(null); if (st.sel) fillRmbg(st.sel); } });
-function drawRmbgDrag(x){   // the box being dragged, drawn on the sticker
-  const r = rmbgDrag, s = r.s, [w, h] = stickerSize(s), kk = k();
+function drawRmbgDrag(x){   // the lasso being drawn, on the sticker (red = erase, green = restore)
+  const r = rmbgDrag, s = r.s, [w, h] = stickerSize(s), kk = k(), col = r.mode === "restore" ? "52, 211, 153" : "255, 90, 110";
   x.save(); x.translate(r.pos[0]*W(), r.pos[1]*H()); x.rotate(s.rot*Math.PI/180); if (s.flip) x.scale(-1, 1);
-  const X0 = (Math.min(r.u0, r.u1) - 0.5)*w, Y0 = (Math.min(r.v0, r.v1) - 0.5)*h, BW = Math.abs(r.u1 - r.u0)*w, BH = Math.abs(r.v1 - r.v0)*h;
-  x.fillStyle = "rgba(255, 90, 110, 0.25)"; x.fillRect(X0, Y0, BW, BH);
-  x.lineWidth = 2*kk; x.strokeStyle = "#ff5a6e"; x.setLineDash([6*kk, 4*kk]); x.strokeRect(X0, Y0, BW, BH); x.restore();
+  x.beginPath(); r.pts.forEach(([u, v], i) => i ? x.lineTo((u - 0.5)*w, (v - 0.5)*h) : x.moveTo((u - 0.5)*w, (v - 0.5)*h)); x.closePath();
+  x.fillStyle = `rgba(${col}, 0.22)`; x.fill();
+  x.lineWidth = 2*kk; x.strokeStyle = `rgb(${col})`; x.setLineDash([6*kk, 4*kk]); x.stroke(); x.restore();
 }
 $("#selRmbgDone").onclick = () => { const s = st.sel; if (!s?.rmbg) return;
   pushHistory();   // ⌘Z goes back to the adjustable result
