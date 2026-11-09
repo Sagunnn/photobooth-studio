@@ -5,98 +5,315 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Photobooth Studio</title>
 <style>
+/* Photobooth Studio: dark UI, solid ink-slate accent, square corners, 1px lines. */
 :root{
-  --bg:#141418; --panel:#1d1d23; --panel2:#272730; --line:#33333d; --text:#ececf1;
-  --muted:#9696a5; --accent:#ff4f8b; --accent-soft:#ff4f8b22; --danger:#ff5a5a;
+  --bg:#0c0c10; --panel:#14141a; --panel2:#1c1c24; --hover:#272731; --line:#2c2c38; --line2:#3b3b4a;
+  --text:#f3f3f7; --muted:#b3b3c4; --subtle:#8a8aa0;
+  --accent:#475569; --accent-hi:#94a3b8; --accent-hover:#56657b; --accent-soft:#47556940; --danger:#ff5a6e; --ok:#34d399;
+  --grad:var(--accent);
+  --glow:none;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
-  font:13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-body{display:grid;grid-template-columns:290px minmax(0,1fr) 280px;height:100vh;overflow:hidden}
-aside{background:var(--panel);overflow-y:auto;padding:14px 14px 40px}
+  font:13.5px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+body{display:grid;grid-template-columns:340px minmax(0,1fr) 320px;grid-template-rows:auto minmax(0,1fr);height:100vh;overflow:hidden}
+[hidden]{display:none!important}   /* hidden always wins over a display set below */
+*,*::before,*::after{border-radius:0!important}   /* square, modern corners throughout */
+body.simple .adv{display:none!important}
+body.advmode .basic,.adv-empty{display:none!important}
+
+/* ---------- toolbar ---------- */
+.toolbar{grid-column:1/-1;display:flex;align-items:center;gap:10px;height:66px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto}
+.brand{display:flex;align-items:center;gap:10px;white-space:nowrap;margin-right:6px}
+.brand .logo{width:34px;height:34px;background:var(--accent);border:1px solid var(--accent-hi);display:grid;place-items:center;flex:none}
+.brand b{display:block;font-size:15px;font-weight:600}
+.brand small{display:block;font-size:11px;color:var(--muted)}
+.toolgroup{display:flex;gap:2px;padding:4px;background:var(--bg);border:1px solid var(--line);border-radius:14px}
+.toolbar button[data-tool]{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;min-width:74px;border-radius:10px;
+  border:1px solid transparent;background:transparent;color:var(--muted);font-size:11.5px;font-weight:500;position:relative}
+.toolbar button[data-tool] svg{width:20px;height:20px}
+.toolbar button[data-tool]:hover{background:var(--panel2);color:var(--text);border-color:transparent}
+.toolbar button[data-tool].active{background:var(--accent-soft);color:var(--text);box-shadow:inset 0 -2px 0 var(--accent-hi)}
+.toolbar button[data-tool].active svg{color:var(--accent-hi)}
+.toolbar .dot{position:absolute;top:6px;right:16px;width:6px;height:6px;background:var(--ok);display:none}
+.toolbar button.is-on .dot{display:block}
+.toolbar .spacer{flex:1}
+.toolbar [hidden]{display:none!important}
+.tdiv{width:1px;height:28px;background:var(--line);flex:none}
+.toolbar .seg.modeseg{width:auto;margin:0}
+.toolbar .seg.modeseg label{flex:none}
+.toolbar > button{flex:none}
+
+/* ---------- side panels ---------- */
+aside{background:var(--panel);overflow-y:auto;padding:24px 24px 32px;display:flex;flex-direction:column;gap:16px}
 aside.left{border-right:1px solid var(--line)}
 aside.right{border-left:1px solid var(--line)}
-h1{font-size:16px;margin:2px 0 4px;letter-spacing:-.01em}
-.sub{color:var(--muted);margin:0 0 10px;font-size:12px}
-section{border-top:1px solid var(--line);padding:12px 0 10px}
-h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;font-weight:600}
-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0;color:var(--muted)}
-.row{display:flex;gap:6px;align-items:center;margin:6px 0}
+.panelhead h1{font-size:18px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0;font-size:13px;line-height:1.45}
+aside section{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0}
+aside.left section[data-tool]:not(.active){display:none}
+h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--subtle);margin:0 0 12px;font-weight:600}
+label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0;color:var(--muted)}
+section > label:first-of-type{margin-top:0}
+.row{display:flex;gap:8px;align-items:center;margin:10px 0 0}
 .row > *{flex:1}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
 input,select,button,textarea{font:inherit;color:var(--text)}
-input[type=text],input[type=number],select{background:var(--panel2);border:1px solid var(--line);
-  border-radius:6px;padding:6px 8px;width:100%;min-width:0}
-label input[type=number]{width:72px;flex:none}
-label select,label input[type=text]{width:150px;flex:none}
-input[type=color]{width:42px;height:28px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);padding:2px;flex:none}
-input[type=range]{flex:1;accent-color:var(--accent)}
-input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
-button{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:7px 10px;cursor:pointer;white-space:nowrap}
-button:hover{border-color:var(--muted)}
+input[type=text],input[type=number],select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;width:100%;min-width:0;outline:none}
+input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--accent-hi)}
+label input[type=number]{width:78px;flex:none}
+label select,label input[type=text]{width:160px;flex:none}
+details summary{cursor:pointer;color:var(--muted);margin:10px 0 4px}
+
+/* buttons */
+button{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:9px 14px;cursor:pointer;white-space:nowrap;font-weight:500;transition:border-color .12s,background .12s}
+button:hover{border-color:var(--subtle)}
 button:disabled{opacity:.4;cursor:default}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
-button.primary:hover{filter:brightness(1.08)}
+button.primary{background:var(--accent);border:1px solid var(--accent-hi);color:#fff;font-weight:600;padding:10px 18px;letter-spacing:.01em}
+button.primary:hover{background:var(--accent-hover)}
 button.danger{color:var(--danger)}
-.drop{border:1.5px dashed var(--line);border-radius:8px;padding:10px;text-align:center;color:var(--muted);cursor:pointer;margin:6px 0;font-size:12px}
-.drop:hover,.drop.over{border-color:var(--accent);color:var(--text);background:var(--accent-soft)}
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.tiles button{aspect-ratio:1;padding:4px;display:grid;place-items:center;overflow:hidden}
-.tiles img{max-width:100%;max-height:100%;pointer-events:none}
-.tiles .emoji{font-size:26px;line-height:1}
-.tiles button.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.tiles button{position:relative}
-.tiles .del{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#e5344a;color:#fff;
-  font-size:13px;line-height:20px;text-align:center;display:none;cursor:pointer;box-shadow:0 1px 4px #0008}
-.tiles button:hover .del,.tiles button:focus-visible .del{display:block}
-.bg-tiles button{aspect-ratio:2/3;padding:0}
-.bg-tiles img{width:100%;height:100%;object-fit:cover}
-.empty{color:var(--muted);font-size:12px;grid-column:1/-1}
-main{display:flex;flex-direction:column;min-width:0;min-height:0}
-.stage{flex:1;display:grid;place-items:center;padding:24px;min-height:0;position:relative}
-.stage.over::after{content:"Drop here";position:absolute;inset:10px;border:2px dashed var(--accent);border-radius:12px;
-  display:grid;place-items:center;color:var(--accent);font-size:18px;font-weight:600;pointer-events:none;background:#ff4f8b10}
-canvas{display:block;box-shadow:0 10px 40px #0008;touch-action:none;
-  background:conic-gradient(#cfcfd6 25%,#f4f4f7 0 50%,#cfcfd6 0 75%,#f4f4f7 0) 0 0/24px 24px}
-.hint{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 14px}
-.hint b{color:var(--text);font-weight:600}
-.status{font-size:12px;color:var(--muted);margin-top:8px;word-break:break-word}
-.status b{color:var(--text)}
-#selPanel[hidden]{display:none}
-.btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
-.topbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
-.topbar input[type=text]{flex:1;min-width:140px;max-width:280px;width:auto}
-.topbar button.primary{padding:8px 16px}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex:none}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn-ic{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-ic svg{width:16px;height:16px;flex:none}
+
+/* segmented control */
+.seg{display:inline-flex;gap:2px;padding:3px;background:var(--bg);border:1px solid var(--line);border-radius:10px;flex:none}
 .seg label{margin:0;cursor:pointer}
 .seg input{position:absolute;opacity:0;pointer-events:none}
-.seg span{display:block;padding:6px 12px;color:var(--muted)}
-.seg input:checked + span{background:var(--accent-soft);color:var(--text);box-shadow:inset 0 -2px 0 var(--accent)}
-.seg input:focus-visible + span{outline:2px solid var(--accent);outline-offset:-2px}
-.topstatus{margin:0;padding:6px 16px 0;min-height:22px}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#000c;color:#fff;
-  padding:10px 16px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none;max-width:70vw;z-index:9}
+.seg span{display:block;padding:6px 14px;color:var(--muted);border-radius:8px;font-weight:500}
+.seg input:checked + span{background:var(--accent);color:#fff}
+.seg input:focus-visible + span{outline:2px solid var(--accent-hi);outline-offset:-2px}
+.machseg{display:flex;width:100%}
+.machseg button{flex:1;border:0;background:transparent;color:var(--muted);padding:7px 10px}
+.machseg button.on{background:var(--accent);color:#fff}
+
+/* sliders: gradient fill up to the value (--p is kept in sync by the script) */
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:18px;background:transparent;margin:0;--p:50%;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:linear-gradient(var(--accent-hi),var(--accent-hi)) 0 0/var(--p) 100% no-repeat,var(--hover)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:16px;margin-top:-6.5px;background:#fff;border:1px solid var(--accent)}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--hover)}
+input[type=range]::-moz-range-progress{height:3px;background:var(--accent-hi)}
+input[type=range]::-moz-range-thumb{width:10px;height:16px;border:1px solid var(--accent);background:#fff}
+label:has(> input[type=range]){flex-wrap:wrap;row-gap:8px;color:var(--text)}
+label:has(> input[type=range]) > input[type=range]{flex-basis:100%;order:9}
+.val{margin-left:auto;font-weight:600;color:var(--text);font-size:12px;background:var(--hover);padding:2px 8px;border-radius:6px;font-variant-numeric:tabular-nums}
+
+/* checkboxes are switches; the text sits on the left */
+input[type=checkbox]{-webkit-appearance:none;appearance:none;width:34px;height:20px;border-radius:10px;background:var(--hover);position:relative;cursor:pointer;flex:none;margin:0;border:0;transition:background .15s}
+input[type=checkbox]::before{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;background:var(--muted);transition:left .15s,background .15s}
+input[type=checkbox]:checked{background:var(--accent);box-shadow:inset 0 0 0 1px var(--accent-hi)}
+input[type=checkbox]:checked::before{background:#fff}
+input[type=checkbox]:checked::before{left:17px}
+label:has(> input[type=checkbox]){flex-direction:row-reverse;justify-content:space-between!important;color:var(--text)}
+input[type=radio]{accent-color:var(--accent)}
+
+/* drop zones and tiles */
+.drop{border:1.5px dashed var(--line2);border-radius:12px;padding:14px;text-align:center;color:var(--muted);cursor:pointer;margin:10px 0;font-size:12.5px;background:var(--bg)}
+.drop:hover,.drop.over{border-color:var(--accent-hi);color:var(--text);background:var(--accent-soft)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tiles button{aspect-ratio:1;padding:6px;display:grid;place-items:center;overflow:hidden;position:relative;border-radius:12px;background:var(--bg);border-color:var(--line)}
+.tiles img{max-width:100%;max-height:100%;pointer-events:none}
+.tiles .emoji{font-size:26px;line-height:1}
+.tiles button.on{border-color:var(--accent-hi);box-shadow:inset 0 0 0 1px var(--accent-hi)}
+.tiles .del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:var(--danger);color:#fff;
+  font-size:13px;line-height:20px;text-align:center;display:none;cursor:pointer;box-shadow:0 1px 4px #0008}
+.tiles button:hover .del,.tiles button:focus-visible .del{display:block}
+.bg-tiles{grid-template-columns:repeat(3,1fr)}
+.bg-tiles button{aspect-ratio:1;padding:0}
+.bg-tiles img{width:100%;height:100%;object-fit:cover}
+.empty{color:var(--subtle);font-size:12px;grid-column:1/-1}
+
+/* template gallery: always visible, three per row */
+#layoutBtn{display:none!important}
+#layoutGallery[hidden]{display:grid!important}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0}
+.gallery h3{grid-column:1/-1;margin:6px 0 0;font-size:11px;font-weight:600;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em}
+.gallery button{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;padding:12px 4px 10px;font-size:11.5px;line-height:1.25;white-space:normal;position:relative;border-radius:12px;background:var(--bg);border-color:var(--line)}
+.gallery button.on{border:2px solid var(--accent-hi);background:var(--accent-soft);padding:11px 3px 9px}
+.gallery button.on::after{content:"✓";position:absolute;top:0;right:0;width:18px;height:18px;background:var(--accent-hi);color:var(--bg);font-size:11px;line-height:18px;font-weight:700}
+.gallery .name{word-break:break-word;text-align:center;font-weight:500;color:var(--text)}
+.gallery small{display:block;color:var(--subtle);font-size:11px}
+.gallery canvas{display:block;flex:none;border-radius:2px}
+.gallery .plus{width:40px;height:40px;margin:10px 0 4px;display:grid;place-items:center;font-size:22px;color:var(--accent-hi);background:var(--accent-soft)}
+.layout-btn small{display:block}
+.resetrow{display:flex;align-items:center;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.resetrow button{flex:none}
+.resetrow .sub{font-size:12px;color:var(--subtle)}
+
+/* gradient background */
+#gradPreview{display:block;width:100%;height:40px;border:1px solid var(--line2);margin:10px 0}
+.gradstops{display:flex;flex-direction:column;gap:6px}
+.gradstops.corners{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.gstop{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.gstop .cswatch{flex:1;justify-content:flex-start}
+.gstop .lbtn{flex:none}
+.grad-presets{grid-template-columns:repeat(4,1fr);margin-top:10px}
+.grad-presets button{aspect-ratio:1;padding:0}
+.grad-presets canvas{width:100%;height:100%;display:block}
+
+/* paper textures */
+.shadowopts{border-left:2px solid var(--line2);padding-left:12px;margin:4px 0 8px}
+.tex-tiles{grid-template-columns:repeat(4,1fr)}
+.tex-tiles button{aspect-ratio:auto;display:flex;flex-direction:column;gap:4px;padding:4px 4px 6px;font-size:10.5px;color:var(--muted)}
+.tex-tiles canvas{width:100%;aspect-ratio:1;display:block}
+.tex-tiles button.on{color:var(--text)}
+
+/* print preview: one strip, cropped to the guides */
+.pv{position:fixed;inset:0;z-index:70;background:#000c;display:grid;place-items:center;padding:24px}
+.pv-box{background:var(--panel);border:1px solid var(--line2);max-width:96vw;max-height:94vh;display:flex;flex-direction:column;box-shadow:0 30px 80px #000}
+.pv-head{display:flex;align-items:center;gap:16px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.pv-head > div:first-child{flex:1;min-width:0}
+.pv-head b{display:block;font-size:15px}
+.pv-head small{display:block;color:var(--muted);font-size:12px}
+#pvClose{padding:6px 10px}
+.pv-stage{padding:28px 40px;display:grid;place-items:center;overflow:auto;background:radial-gradient(ellipse at center,#24242e 0%,#0d0d12 80%)}
+#pvCanvas{display:block;box-shadow:0 2px 0 #0003,0 18px 40px #000b,0 0 0 1px #0004}
+
+/* layers */
+.layers{display:flex;flex-direction:column}
+.layer{display:flex;align-items:center;gap:10px;padding:7px 8px;margin-top:-1px;background:var(--bg);border:1px solid var(--line);cursor:pointer;min-height:42px}
+.layer:hover{background:var(--hover)}
+.layer.sel{border-color:var(--accent-hi);background:var(--accent-soft);position:relative;z-index:1}
+.layer.off .lname,.layer.off .lic{opacity:.4}
+.lic{width:26px;height:26px;flex:none;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line);color:var(--muted);overflow:hidden}
+.lic canvas{max-width:22px;max-height:22px}
+.lic svg{width:15px;height:15px}
+.lname{flex:1;min-width:0}
+.lname b{display:block;font-weight:500;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lname small{display:block;font-size:11.5px;color:var(--subtle);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbtn{width:26px;height:26px;padding:0;display:grid;place-items:center;flex:none;background:transparent;border:1px solid transparent;color:var(--muted)}
+.lbtn:hover{border-color:var(--line2);color:var(--text);background:var(--panel2)}
+.lbtn.del:hover{color:var(--danger)}
+.lbtn svg{width:15px;height:15px}
+.lbtn:disabled{visibility:hidden}
+
+/* right panel */
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+#selPanel .btns button{padding:8px 10px}
+
+/* ---------- workspace ---------- */
+main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.topbar{display:flex;gap:14px;align-items:center;height:56px;padding:0 20px;border-bottom:1px solid var(--line);background:var(--panel);flex:none}
+.topbar input[type=text]{flex:none;width:220px}
+.topstatus{flex:1;min-width:0;margin:0;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topstatus b{color:var(--text)}
+.topstatus a{color:var(--accent-hi)}
+.stagewrap{flex:1;position:relative;min-height:0;background:radial-gradient(ellipse at center,#1c1c24 0%,#0a0a0e 75%)}
+.stage{position:absolute;inset:0;display:flex;overflow:auto;padding:24px 24px 84px}
+.plate{margin:auto;flex:none;background:#14141ad9;border:1px solid var(--line);border-radius:18px;padding:14px 18px 18px;box-shadow:0 30px 60px #000a}
+.platehead{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;white-space:nowrap}
+.platehead i{width:7px;height:7px;background:var(--accent-hi);flex:none}
+.platehead span{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis}
+#cv{display:block;touch-action:none;box-shadow:0 10px 40px #0009;
+  background:conic-gradient(#cfcfd6 25%,#f4f4f7 0 50%,#cfcfd6 0 75%,#f4f4f7 0) 0 0/24px 24px}
+.stage.panning,.stage.panning #cv{cursor:grab}
+.stage.panning.dragging,.stage.panning.dragging #cv{cursor:grabbing}
+.stage.over::after{content:"Drop here";position:absolute;inset:12px;border:2px dashed var(--accent-hi);
+  display:grid;place-items:center;color:var(--accent-hi);font-size:18px;font-weight:600;pointer-events:none;background:#47556926}
+.pill{position:absolute;bottom:18px;display:flex;align-items:center;gap:12px;padding:7px 10px;background:var(--panel);border:1px solid var(--line2);
+  box-shadow:0 12px 30px #0009;font-size:12px;color:var(--muted);white-space:nowrap}
+.pill.shortcuts{left:18px}
+.pill.view{right:18px}
+.pill .k{display:inline-flex;align-items:center;gap:6px}
+kbd{font:11px ui-monospace,SFMono-Regular,monospace;background:var(--panel2);border:1px solid var(--line2);border-radius:5px;padding:1px 6px;color:var(--text)}
+.zoombar{display:flex;align-items:center;gap:2px}
+.zoombar button{padding:4px 10px;border-color:transparent;background:transparent}
+.zoombar button:hover{background:var(--panel2)}
+.zoombar #zoomPct{min-width:56px;font-variant-numeric:tabular-nums;color:var(--text)}
+.pill .chip{display:inline-flex;align-items:center;gap:8px;margin:0;color:var(--text);cursor:pointer;flex-direction:row-reverse}
+.pill .vdiv{width:1px;height:22px;background:var(--line2)}
+.status{font-size:12px;color:var(--muted);margin-top:8px;word-break:break-word}
+.warn{color:var(--danger);font-size:12px;margin-top:8px}
+.toast{position:fixed;left:50%;top:80px;transform:translateX(-50%) translateY(-12px);background:#000d;color:#fff;border:1px solid var(--line2);
+  padding:10px 16px;border-radius:10px;opacity:0;transition:.25s;pointer-events:none;max-width:70vw;z-index:9}
 .toast.show{opacity:1;transform:translateX(-50%)}
 .toast.err{background:#a21d3ccc}
-details summary{cursor:pointer;color:var(--muted);margin:6px 0}
+
+/* ---------- colour picker ---------- */
+.cswatch{display:inline-flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;flex:none;font:12px ui-monospace,SFMono-Regular,monospace;text-transform:uppercase;background:var(--bg)}
+.cswatch i{width:26px;height:22px;border-radius:6px;border:1px solid #0008;box-shadow:inset 0 0 0 1px #fff3}
+.cpop{position:fixed;z-index:60;width:256px;background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:12px;box-shadow:0 18px 44px #000c,0 2px 6px #0007}
+.cp-sv{width:230px;height:146px;border-radius:8px;cursor:crosshair;display:block;touch-action:none}
+.cp-hue{width:100%;margin:10px 0;-webkit-appearance:none;appearance:none;height:12px;border-radius:6px;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+.cp-hue::-webkit-slider-runnable-track{background:transparent;height:12px}
+.cp-hue::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;margin-top:-2px;border-radius:50%;background:#fff;border:2px solid #0009}
+.cp-row{display:flex;gap:6px;align-items:center}
+.cp-prev{width:32px;height:32px;border-radius:8px;border:1px solid var(--line2);flex:none}
+.cp-code{flex:1;min-width:0;font:12px ui-monospace,SFMono-Regular,monospace!important}
+.cp-code.bad{border-color:var(--danger)!important}
+.cp-row button{padding:6px 9px}
+.cp-label{font-size:11px;color:var(--subtle);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.cp-sw{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.cp-sw button{aspect-ratio:1;padding:0;border-radius:6px;border:1px solid #0008;box-shadow:inset 0 0 0 1px #fff2}
+body.eyedrop .stage,body.eyedrop #cv,body.rmbgtool .stage,body.rmbgtool #cv{cursor:crosshair}
+#rmbgWand.on,#rmbgBoxTool.on{background:var(--accent);color:#fff;border-color:var(--accent-hi)}
+
+/* ---------- font picker ---------- */
+.fontbtn{width:160px;flex:none;display:flex;align-items:center;gap:6px;padding:7px 10px;text-align:left}
+.fontbtn span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}
+.fontbtn i{font-style:normal;color:var(--muted)}
+.fpop{display:flex;flex-direction:column;height:300px;margin:4px 0 12px;background:var(--bg);border:1px solid var(--line2);border-radius:12px;padding:6px}
+.fpop input{width:100%;box-sizing:border-box;margin-bottom:6px}
+.fp-list{overflow-y:auto;flex:1;min-height:0}
+.fpop[hidden],.cpop[hidden],.layout-btn[hidden]{display:none}
+.fp-list h3{margin:8px 6px 4px;font-size:11px;font-weight:600;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em}
+.fp-item{display:block;width:100%;text-align:left;border:1px solid transparent;background:transparent;padding:6px 8px;border-radius:8px;white-space:normal;content-visibility:auto;contain-intrinsic-size:auto 48px}
+.fp-item:hover,.fp-item.hl{background:var(--panel2);border-color:var(--line)}
+.fp-item.on{border-color:var(--accent-hi);background:var(--accent-soft)}
+.fp-item .smp{display:block;font-size:17px;line-height:1.25;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fp-item small{display:block;color:var(--muted);font-size:11.5px}
+.chip{display:inline-flex;align-items:center;gap:6px;margin:0;padding:6px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;color:var(--text);flex:none}
 .radio{display:flex;gap:14px;margin:6px 0;color:var(--text)}
 .radio label{margin:0;color:var(--text);justify-content:flex-start;gap:6px}
-.warn{color:var(--danger);font-size:12px;margin-top:6px}
-kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:11px}
 </style>
 </head>
 <body>
 
-<aside class="left">
-  <h1>Photobooth Studio</h1>
-  <p class="sub">Design grid frames, drop in photos, add stickers.</p>
+<nav class="toolbar" id="toolbar" aria-label="Tools">
+  <div class="brand"><span class="logo" style="color:#fff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></span><span><b>Photobooth Studio</b><small>Template designer</small></span></div>
+  <div class="toolgroup">
+    <button data-tool="layout" title="Machine and template"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/></svg>Layout</button>
+    <button data-tool="background" title="Colour, image and photo corners"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.29-.44-.65-.44-1.13a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.55-2.5 5.55-5.55C21.97 6.01 17.46 2 12 2z"/></svg>Background</button>
+    <button data-tool="pattern" title="Scatter PNGs behind the photos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0l1.58 6.14a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>Pattern</button>
+    <button data-tool="film" title="Film-reel edges with sprocket holes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/></svg>Film reel<i class="dot" title="Film is on"></i></button>
+    <button data-tool="caption" title="Text in the logo space"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>Caption</button>
+    <button data-tool="photos" title="Drop test photos into the slots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/></svg>Photos</button>
+    <button data-tool="print" class="adv" title="Cut in half, bleed and print guides"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>Print &amp; cut</button>
+  </div>
+  <span class="spacer"></span>
+  <div class="seg modeseg" role="radiogroup" aria-label="How many options to show">
+    <label title="Just the everyday options"><input type="radio" name="uimode" value="simple" checked><span>Simple</span></label>
+    <label title="The extra settings: sizes, spacing, cutting, print guides…"><input type="radio" name="uimode" value="advanced"><span>Advanced</span></label>
+  </div>
+  <span class="tdiv"></span>
+  <button id="saveBtn" class="btn-ic" title="Save straight into Generated Templates/<machine>/<layout>/ (⇧⌘S)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>Save to folder</button>
+  <button class="primary btn-ic" id="downloadBtn" title="Export the design as a PNG file (⌘S)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Export PNG</button>
+</nav>
 
-  <section>
-    <h2>Grid</h2>
-    <label>Layout <select id="preset"></select></label>
-    <label>Machine <input type="text" id="machine" placeholder="(default)" list="machineList"></label>
+<aside class="left">
+  <div class="panelhead"><h1 id="panelTitle">Layout</h1><p class="sub" id="panelDesc"></p></div>
+  <p class="sub adv">Advanced: extra settings only. Switch to <b>Simple</b> for the everyday ones.</p>
+
+  <section data-tool="layout">
+    <h2 class="both">Machine</h2>
+    <div class="seg machseg both" id="machineSeg"></div>
+    <div class="row adv"><button id="newFromFile" title="Make a new template from a Photoshop or PNG file: copies its size, photo slots, corners and guides">＋ New template from PSD / PNG…</button></div>
+    <select id="machinePick" hidden></select>
+    <h2 class="both" style="margin-top:18px">Template</h2>
+    <button id="layoutBtn" class="layout-btn both" aria-expanded="false" title="Choose a layout">
+      <canvas id="layoutThumb"></canvas><span class="grow"><b id="layoutName"></b><small id="layoutInfo"></small></span><span class="chev">▾</span>
+    </button>
+    <div id="layoutGallery" class="gallery both" hidden></div>
+    <div class="resetrow both">
+      <button id="resetBtn" class="btn-ic" title="Put this template back the way it was saved: colours, background, pattern, film, caption and stickers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset changes</button>
+      <span class="sub">Changes stay when you switch templates</span>
+    </div>
+    <select id="preset" hidden></select>
+    <div class="adv">
+    <label title="Which machine this template is saved under (type a new name to start a new machine)">Save under machine <input type="text" id="machine" placeholder="(default)" list="machineList"></label>
     <datalist id="machineList"></datalist>
-    <label>Folder name <input type="text" id="gname"></label>
+    <label title="Name of this template, also its folder in Generated Templates">Template name <input type="text" id="gname"></label>
+    <p class="sub" id="slotsNote" hidden style="margin:4px 0">Exact photo positions (imported). Changing rows, columns, size or spacing switches to an even grid.</p>
     <div class="grid2">
       <label>Rows <input type="number" id="rows" min="1" max="20"></label>
       <label>Columns <input type="number" id="cols" min="1" max="20"></label>
@@ -117,9 +334,16 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
     </div>
     <div class="warn" id="layoutWarn" hidden></div>
     <div class="row"><button id="presetBtn" title="Add this layout to grids.json">Save layout to grids.json</button></div>
+    </div>
   </section>
 
-  <section>
+  <section data-tool="layout" class="adv">
+    <h2>Import template</h2>
+    <div class="drop" id="importDrop">Drop a PSD or PNG template<br>to copy its size, photo slots and guides</div>
+    <div class="status" id="psdInfo" hidden></div>
+  </section>
+
+  <section data-tool="print" class="adv">
     <h2>Print &amp; cut</h2>
     <label>Cut in half
       <select id="cut">
@@ -136,30 +360,96 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
     </div>
     <label>Bleed (trim) <input type="number" id="bleed" min="0" step="1"></label>
     <label style="justify-content:flex-start"><input type="checkbox" id="showGuides" checked> Show print guides</label>
-    <div class="drop" id="psdDrop">Drop a PSD to use its guides<br>or click to choose</div>
-    <div class="status" id="psdInfo" hidden></div>
   </section>
 
-  <section>
-    <h2>Background</h2>
-    <label>Colour <input type="color" id="background"></label>
-    <label>Photo slots
+  <section data-tool="background">
+    <h2>Colour &amp; image</h2>
+    <div class="seg machseg" id="bgModeSeg" title="One colour, or a blend of colours">
+      <button type="button" data-mode="solid">Solid</button><button type="button" data-mode="gradient">Gradient</button>
+    </div>
+    <label id="bgColourRow"><span id="bgColourLabel">Colour</span> <input type="color" id="background"></label>
+    <div id="gradOpts" hidden>
+      <div class="seg machseg" id="gradTypeSeg" style="margin-top:10px">
+        <button type="button" data-type="corners" title="A colour in each corner, blended across">4 corners</button>
+        <button type="button" data-type="linear" title="Colours in a straight line">Linear</button>
+        <button type="button" data-type="radial" title="Colours spreading out from the centre">Radial</button>
+      </div>
+      <canvas id="gradPreview" width="292" height="40"></canvas>
+      <div class="gradstops" id="gradStops"></div>
+      <label id="gradAngleRow">Angle <b class="val" id="v_grad_angle"></b><input type="range" id="grad_angle" min="0" max="360"></label>
+      <div class="tiles grad-presets" id="gradPresets" title="Presets"></div>
+    </div>
+    <label class="adv">Photo slots
       <select id="slot"><option value="transparent">See-through</option><option value="#ffffff">White</option></select>
     </label>
-    <div class="drop" id="bgDrop">Drop a background image here<br>or click to choose</div>
+    <label class="adv">Rounded corners <input type="number" id="radius" min="0" step="2" title="Corner radius of the photo slots, in px"></label>
+    <label title="Drag right for rounder corners; all the way = fully round ends">Rounded corners <b class="val" id="v_radiusRange">0px</b><input type="range" id="radiusRange" min="0" step="1"></label>
+    <div class="drop" id="bgDrop">Drop or paste (⌘V) a background image<br>or click to choose</div>
     <div class="tiles bg-tiles" id="bgList"></div>
+    <div id="bgImageOpts">
+      <h2 style="margin-top:16px">Image</h2>
+      <div class="seg machseg" id="bgFitSeg" title="How the image fills the page">
+        <button type="button" data-fit="cover" title="Fill the page, cropping what doesn't fit">Fill</button>
+        <button type="button" data-fit="stretch" title="Stretch to the exact page size (changes its shape)">Stretch</button>
+        <button type="button" data-fit="contain" title="Show the whole image; the colour fills the rest">Fit</button>
+      </div>
+      <label id="bgOpacityRow" title="Lower it to let the background colour show through the image">Opacity <b class="val" id="v_bg_opacity"></b><input type="range" id="bg_opacity" min="0" max="100"></label>
+      <label>Rotate <b class="val" id="v_bg_rotate"></b><input type="range" id="bg_rotate" min="-180" max="180"></label>
+      <label title="Expand or shrink the image">Zoom <b class="val" id="v_bg_zoom"></b><input type="range" id="bg_zoom" min="50" max="300"></label>
+      <label>Move ↔ <b class="val" id="v_bg_x"></b><input type="range" id="bg_x" min="-50" max="50"></label>
+      <label>Move ↕ <b class="val" id="v_bg_y"></b><input type="range" id="bg_y" min="-50" max="50"></label>
+      <div class="row"><button type="button" id="bgRot90" title="Turn a quarter turn clockwise">↻ 90°</button><button type="button" id="bgImgReset">Reset image</button></div>
+    </div>
+    <h2 style="margin-top:16px">Paper texture</h2>
+    <div class="tiles tex-tiles" id="texTiles"></div>
+    <label id="texStrengthRow" title="How strong the texture is">Strength <b class="val" id="v_tex_strength"></b><input type="range" id="tex_strength" min="5" max="100"></label>
   </section>
 
-  <section>
-    <h2>Caption</h2>
-    <input type="text" id="text" placeholder="e.g. DOLA FOTO">
+  <section data-tool="pattern">
+    <h2>Pattern images</h2>
+    <div class="drop" id="patternDrop">Drop or paste (⌘V) PNGs, or drag in stickers<br>from the right · click to choose</div>
+    <div class="tiles" id="patternItems"></div>
+    <div id="patternOpts" hidden>
+      <label>Gap <b class="val" id="v_gap"></b><input type="range" id="pat_gap" min="-150" max="600" step="5"></label>
+      <label>Size <b class="val" id="v_size"></b><input type="range" id="pat_size" min="20" max="900" step="5"></label>
+      <label>Randomness <b class="val" id="v_scatter"></b><input type="range" id="pat_scatter" min="0" max="100"></label>
+      <label>Rotation <b class="val" id="v_rotate"></b><input type="range" id="pat_rotate" min="0" max="180"></label>
+      <label>Size mix <b class="val" id="v_vary"></b><input type="range" id="pat_vary" min="0" max="80"></label>
+      <label>Opacity <b class="val" id="v_opacity"></b><input type="range" id="pat_opacity" min="5" max="100"></label>
+      <label class="adv" style="justify-content:flex-start" id="patHalfRow"><input type="checkbox" id="pat_per_half"> Same pattern in both halves</label>
+      <div class="row"><button id="patShuffle" title="New random arrangement">Shuffle</button><button id="patClear" class="ghost">Remove pattern</button></div>
+    </div>
+  </section>
+
+  <section data-tool="film">
+    <h2>Film edges</h2>
+    <label style="justify-content:flex-start"><input type="checkbox" id="film"> <b>Film edges on</b></label>
+    <div id="filmOpts">
+      <label title="How wide the film edge with the holes is">Film width <b class="val" id="v_film_band"></b><input type="range" id="film_band" min="20" max="300" step="5"></label>
+      <p class="sub" id="filmNote" hidden style="margin:2px 0 6px"></p>
+      <label>Hole colour <input type="color" id="film_holes" value="#ffffff"></label>
+      <label style="justify-content:flex-start"><input type="checkbox" id="film_clear"> See-through holes</label>
+    </div>
+  </section>
+
+  <section data-tool="caption">
+    <h2>Text</h2>
+    <input type="text" id="text" placeholder="e.g. your brand or event name">
     <label>Font <select id="text_font"></select></label>
     <label>Colour <input type="color" id="text_color"></label>
-    <label>Size <input type="range" id="text_size" min="20" max="400"></label>
+    <label title="A shadow behind it"><span>Shadow</span><input type="checkbox" id="capShadow"></label>
+    <div id="capShadowOpts" class="shadowopts">
+      <label>Shadow colour <input type="color" id="capShColor" value="#000000"></label>
+      <label title="Which way the shadow falls: 0° right, 90° down">Angle <b class="val" id="v_capShAngle"></b><input type="range" id="capShAngle" min="0" max="359"></label>
+      <label>Distance <b class="val" id="v_capShDist"></b><input type="range" id="capShDist" min="0" max="150"></label>
+      <label title="Gaussian blur: 0 = sharp edge">Blur <b class="val" id="v_capShBlur"></b><input type="range" id="capShBlur" min="0" max="150"></label>
+      <label>Shadow opacity <b class="val" id="v_capShOpacity"></b><input type="range" id="capShOpacity" min="0" max="100"></label>
+    </div>
+    <label>Size <b class="val" id="v_text_size"></b><input type="range" id="text_size" min="20" max="400"></label>
   </section>
 
-  <section>
-    <h2>Photos</h2>
+  <section data-tool="photos">
+    <h2>Test photos</h2>
     <div class="drop" id="photoDrop">Drop photos here to fill empty slots<br>or click to choose</div>
     <div class="row"><button id="clearPhotos">Clear photos</button></div>
   </section>
@@ -171,20 +461,35 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
       <label title="Photo slots left see-through"><input type="radio" name="mode" value="template" checked><span>Template</span></label>
       <label title="Include the photos you dropped in"><input type="radio" name="mode" value="print"><span>With photos</span></label>
     </div>
-    <input type="text" id="saveName" placeholder="File name (optional)">
-    <button class="primary" id="downloadBtn" title="Export the design as a PNG file (⌘S)">⬇ Export PNG</button>
-    <button id="saveBtn" title="Save straight into Generated Templates/<machine>/<layout>/ (⇧⌘S)">Save to folder</button>
+    <button type="button" id="previewBtn" class="btn-ic" title="See one strip exactly as it comes out of the printer (P)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Print preview</button>
+    <div class="status topstatus" id="status"></div>
+    <input type="text" id="saveName" class="adv" placeholder="File name (optional)">
   </div>
-  <div class="status topstatus" id="status"></div>
-  <div class="stage" id="stage"><canvas id="cv"></canvas></div>
-  <div class="hint">
-    Drop <b>photos on a slot</b> · drop any other image on the frame to make it a <b>sticker</b> · drop a <b>PSD</b> to load its guides ·
-    drag the <b>corner</b> to resize, the <b>top dot</b> to rotate · <kbd>⌫</kbd> delete · <kbd>⌘Z</kbd> undo
+  <div class="stagewrap">
+    <div class="stage" id="stage">
+      <div class="plate"><div class="platehead"><i></i><b id="plateName"></b><span id="plateInfo"></span></div><canvas id="cv"></canvas></div>
+    </div>
+    <div class="pill shortcuts" title="Drop photos on a slot; any other image becomes a sticker">
+      <span class="k"><kbd>G</kbd>guides</span><span class="k"><kbd>⌘ scroll</kbd>zoom</span><span class="k"><kbd>Space</kbd>drag to move</span><span class="k"><kbd>P</kbd>print preview</span><span class="k"><kbd>⌘V</kbd>paste image</span><span class="k"><kbd>⌘Z</kbd>undo</span>
+    </div>
+    <div class="pill view">
+      <label class="chip" title="Show or hide the print guides (G)"><input type="checkbox" id="guidesTop" checked> Guides</label>
+      <span class="vdiv"></span>
+      <span class="zoombar">
+        <button id="zoomOut" title="Zoom out (⌘−)">−</button>
+        <button id="zoomPct" title="Fit to window (⌘0)">Fit</button>
+        <button id="zoomIn" title="Zoom in (⌘+)">+</button>
+      </span>
+    </div>
   </div>
 </main>
 
 <aside class="right">
-  <section id="selPanel" hidden style="border-top:0;padding-top:0">
+  <section id="layersPanel">
+    <h2>Layers</h2>
+    <div class="layers" id="layerList"></div>
+  </section>
+  <section id="selPanel" hidden>
     <h2>Selected sticker</h2>
     <div id="textProps">
       <input type="text" id="selText">
@@ -192,27 +497,60 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
       <label>Colour <input type="color" id="selColor"></label>
       <label><span><input type="checkbox" id="selOutline"> Outline</span> <input type="color" id="selOutlineColor"></label>
     </div>
-    <label>Size <input type="range" id="selSize" min="2" max="150"></label>
-    <label>Rotate <input type="range" id="selRot" min="-180" max="180"></label>
-    <label>Opacity <input type="range" id="selOpacity" min="10" max="100"></label>
+    <label>Size <b class="val" id="v_selSize"></b><input type="range" id="selSize" min="2" max="150"></label>
+    <label>Rotate <b class="val" id="v_selRot"></b><input type="range" id="selRot" min="-180" max="180"></label>
+    <label>Opacity <b class="val" id="v_selOpacity"></b><input type="range" id="selOpacity" min="10" max="100"></label>
+    <div id="rmbgBox">
+      <label title="Remove a plain background (white or one colour) around a logo"><span>Remove background</span><input type="checkbox" id="selRmbg"></label>
+      <div id="selRmbgOpts" class="shadowopts">
+        <label title="Found automatically from the image's border; change it if needed">Background colour <input type="color" id="selRmbgColor" value="#ffffff"></label>
+        <label title="How close a colour must be to the background to be removed">Tolerance <b class="val" id="v_selRmbgTol"></b><input type="range" id="selRmbgTol" min="0" max="100"></label>
+        <label title="Width of the edge where logo and background are blended; they are separated cleanly">Edge softness <b class="val" id="v_selRmbgSoft"></b><input type="range" id="selRmbgSoft" min="0" max="6"></label>
+        <div class="cp-label" style="margin:10px 0 6px">Inside areas</div>
+        <div class="seg machseg" id="selRmbgInsideSeg">
+          <button type="button" data-inside="none" title="Only remove background that touches the edge of the image">Outside</button>
+          <button type="button" data-inside="gaps" title="Also remove large enclosed gaps (keeps small ones like the whites of eyes)">Big gaps</button>
+          <button type="button" data-inside="all" title="Remove the background colour everywhere, e.g. the holes in O, A, B">Everywhere</button>
+        </div>
+        <div class="cp-label" style="margin:12px 0 6px">Touch up</div>
+        <div class="row" style="margin-top:0"><button type="button" id="rmbgWand" title="Click an area on the sticker to remove it (and everything connected of a similar colour)">Click to remove</button><button type="button" id="rmbgBoxTool" title="Drag a box on the sticker to erase everything inside it">Erase a box</button></div>
+        <p class="sub" id="rmbgHint" style="font-size:12px;margin:6px 0 0"></p>
+        <div class="row"><button type="button" id="rmbgClearEdits" class="ghost">Undo clicks &amp; boxes</button><button type="button" id="selRmbgDone" title="Keep the result and crop the empty space around it">Finish &amp; trim</button></div>
+      </div>
+    </div>
+    <label title="Colour the sticker"><span>Tint</span><input type="checkbox" id="selTint"></label>
+    <div id="selTintOpts" class="shadowopts">
+      <div class="seg machseg" id="selTintMode" style="margin-bottom:8px">
+        <button type="button" data-mode="color" title="Recolour but keep the shading and details">Colour</button>
+        <button type="button" data-mode="solid" title="Flat colour, like a silhouette">Solid</button>
+      </div>
+      <label>Tint colour <input type="color" id="selTintColor" value="#ff4f8b"></label>
+      <label>Strength <b class="val" id="v_selTintStrength"></b><input type="range" id="selTintStrength" min="0" max="100"></label>
+    </div>
+    <label title="A shadow behind it"><span>Shadow</span><input type="checkbox" id="selShadow"></label>
+    <div id="selShadowOpts" class="shadowopts">
+      <label>Shadow colour <input type="color" id="selShColor" value="#000000"></label>
+      <label title="Which way the shadow falls: 0° right, 90° down">Angle <b class="val" id="v_selShAngle"></b><input type="range" id="selShAngle" min="0" max="359"></label>
+      <label>Distance <b class="val" id="v_selShDist"></b><input type="range" id="selShDist" min="0" max="150"></label>
+      <label title="Gaussian blur: 0 = sharp edge">Blur <b class="val" id="v_selShBlur"></b><input type="range" id="selShBlur" min="0" max="150"></label>
+      <label>Shadow opacity <b class="val" id="v_selShOpacity"></b><input type="range" id="selShOpacity" min="0" max="100"></label>
+    </div>
     <label id="selBothRow" style="justify-content:flex-start;color:var(--text)"><input type="checkbox" id="selBoth"> Repeat in both halves</label>
     <div class="btns">
       <button id="selCenterX" title="Centre left-to-right (in its half when cutting)">Centre ↔</button>
       <button id="selCenterY" title="Centre top-to-bottom (in its half when cutting)">Centre ↕</button>
       <button id="selBand" title="Centre in the logo / caption strip">Logo strip</button>
-    </div>
-    <div class="btns">
-      <button id="selFlip">Flip</button>
-      <button id="selFront">To front</button>
-      <button id="selBack">To back</button>
+      <button id="selFlip" class="adv">Flip</button>
+      <button id="selFront" class="adv">To front</button>
+      <button id="selBack" class="adv">To back</button>
       <button id="selDup">Duplicate</button>
-      <button id="selReset">Straighten</button>
-      <button id="selTrim" title="Crop away empty (transparent or plain-colour) edges">Trim edges</button>
+      <button id="selReset" class="adv">Straighten</button>
+      <button id="selTrim" class="adv" title="Crop away empty (transparent or plain-colour) edges">Trim edges</button>
       <button id="selDel" class="danger">Delete</button>
     </div>
   </section>
 
-  <section style="border-top:0">
+  <section>
     <h2>Stickers</h2>
     <div class="row"><button id="addText">＋ Add text</button><button id="clearStickers">Remove all</button></div>
     <h2 style="margin-top:12px">Graphics</h2>
@@ -221,14 +559,39 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
     <div class="tiles" id="libEmoji"></div>
     <h2 style="margin-top:12px">My stickers</h2>
     <div class="drop" id="stickerDrop">Drop PNG stickers here to keep them<br>or click to choose</div>
-    <label style="justify-content:flex-start" title="Crops transparent edges, or a plain one-colour border, from images you drop in as stickers or logos"><input type="checkbox" id="autoTrim" checked> Auto-trim empty edges</label>
+    <label class="adv" style="justify-content:flex-start" title="Crops transparent edges, or a plain one-colour border, from images you drop in as stickers or logos"><input type="checkbox" id="autoTrim" checked> Auto-trim empty edges</label>
     <div class="tiles" id="libMine"></div>
   </section>
 </aside>
 
 <input type="file" id="filePicker" accept="image/*" multiple hidden>
-<input type="file" id="psdPicker" accept=".psd,image/vnd.adobe.photoshop" hidden>
+<input type="file" id="psdPicker" accept=".psd,.png,image/png,image/vnd.adobe.photoshop" hidden>
 <div class="toast" id="toast"></div>
+<div class="pv" id="printPreview" hidden>
+  <div class="pv-box">
+    <div class="pv-head">
+      <div><b>Print preview</b><small id="pvInfo"></small></div>
+      <div class="seg" id="pvMode"><label><input type="radio" name="pvmode" value="photos" checked><span>With photos</span></label><label><input type="radio" name="pvmode" value="template"><span>Template</span></label></div>
+      <button type="button" id="pvClose" title="Close (Esc)">✕</button>
+    </div>
+    <div class="pv-stage"><canvas id="pvCanvas"></canvas></div>
+  </div>
+</div>
+<div class="fpop" id="fpop" hidden>
+  <input type="text" id="fpSearch" placeholder="Search fonts…" spellcheck="false" autocomplete="off">
+  <div class="fp-list" id="fpList"></div>
+</div>
+<div class="cpop" id="cpop" hidden>
+  <canvas class="cp-sv" id="cpSV" width="220" height="140"></canvas>
+  <input type="range" class="cp-hue" id="cpHue" min="0" max="360" step="1" aria-label="Hue">
+  <div class="cp-row">
+    <span class="cp-prev" id="cpPrev"></span>
+    <input type="text" class="cp-code" id="cpCode" spellcheck="false" autocomplete="off" placeholder="#FF2BD6 or rgb(255,43,214)" title="Type or paste a colour code: #FF2BD6, FF2BD6, #F2D, rgb(255, 43, 214), 255 43 214, or a name like pink">
+    <button id="cpDrop" title="Pick a colour from the design (click a spot on it)">💧</button>
+  </div>
+  <div class="cp-label">Swatches</div><div class="cp-sw" id="cpPresets"></div>
+  <div id="cpRecentWrap" hidden><div class="cp-label">Recent</div><div class="cp-sw" id="cpRecent"></div></div>
+</div>
 
 <script>
 "use strict";
@@ -241,11 +604,12 @@ const FALLBACK_CONFIG = {
   grids: [
     {name:"1-cut",rows:1,cols:1},{name:"2-cut",rows:2,cols:1},{name:"4-cut",rows:2,cols:2},
     {name:"4-cut-strip",rows:4,cols:1,width:960},
-    {name:"4-cut-logo-top",rows:2,cols:2,header:700,footer:200,text:"DOLA FOTO"},
+    {name:"4-cut-logo-top",rows:2,cols:2,header:700,footer:200},
     {name:"6-cut",rows:3,cols:2},
     {name:"6-cut-horizontal",rows:2,cols:3,width:2860,height:1920,footer:230},
     {name:"8-cut",rows:4,cols:2},{name:"9-cut",rows:3,cols:3,width:2860,height:2860},
     {name:"2-cut-split",rows:2,cols:1,cut:"vertical",header:154,gap:78,footer:318},
+    {name:"3-cut-split",rows:3,cols:1,cut:"vertical",header:78,gap:52,footer:371},
     {name:"4-cut-split",rows:4,cols:1,cut:"vertical",header:45,gap:35,footer:203},
     {name:"3-cut-split-horizontal",rows:1,cols:3,cut:"horizontal",width:2860,height:1920,header:13,gap:47,footer:278},
     {name:"g14-6cut-split",machine:"G14",rows:3,cols:1,cut:"vertical",margin:115,gap:40,footer:925,cut_gap:130,background:"#FFFFFF"}
@@ -253,7 +617,8 @@ const FALLBACK_CONFIG = {
 };
 const BASE = {text_font:"Arial Bold Italic", slot:"transparent", background_image:"", text:"",
               text_color:"#FFFFFF", text_size:110, background:"#000000",
-              cut:"none", cut_gap:90, bleed:45, same_photos:true, bg_per_half:true, machine:""};
+              cut:"none", cut_gap:90, bleed:45, same_photos:true, bg_per_half:true, machine:"", text_shadow:null, texture:null, bg_gradient:null, bg_opacity:100, bg_fit:"cover", bg_rotate:0, bg_zoom:100, bg_x:0, bg_y:0,
+              radius:0, film:false, film_band:110, film_holes:"#FFFFFF"};
 const FONTS = {
   "Arial Bold Italic": s => `italic 700 ${s}px Arial`,
   "Arial Black":       s => `900 ${s}px "Arial Black", Arial`,
@@ -289,7 +654,7 @@ function fillFontSelects(){
 /* select a font, adding it to the list if it came from a layout made on another computer */
 function setFontSelect(sel, name){
   if (![...sel.options].some(o => o.value === name)) sel.add(new Option(name + " (not installed)", name));
-  sel.value = name;
+  sel.value = name; FP[sel.id]?.();
 }
 /* can this page actually draw the font? (Brave hides fonts you installed yourself) */
 function fontAvailable(name){
@@ -434,13 +799,88 @@ const isCut = () => st.g.cut === "vertical" || st.g.cut === "horizontal";
    above/below for a left|right cut, left/right for a top/bottom cut. */
 function regionsOf(g){
   const W = g.width, H = g.height, m = g.margin, c = g.cut_gap/2, start = m + g.header, end = g.footer || m;
-  if (g.cut === "vertical") return [{x:0, y:0, w:W/2, h:H, l:m, r:c, t:start, b:end},
-                                    {x:W/2, y:0, w:W/2, h:H, l:c, r:m, t:start, b:end}];
-  if (g.cut === "horizontal") return [{x:0, y:0, w:W, h:H/2, l:start, r:end, t:m, b:c},
-                                      {x:0, y:H/2, w:W, h:H/2, l:start, r:end, t:c, b:m}];
-  return [{x:0, y:0, w:W, h:H, l:m, r:m, t:start, b:end}];
+  // photo slots exactly as in the original templates (outer margin m, cut-side margin c)
+  const out = g.cut === "vertical" ? [{x:0, y:0, w:W/2, h:H, l:m, r:c, t:start, b:end},
+                                      {x:W/2, y:0, w:W/2, h:H, l:c, r:m, t:start, b:end}]
+            : g.cut === "horizontal" ? [{x:0, y:0, w:W, h:H/2, l:start, r:end, t:m, b:c},
+                                        {x:0, y:H/2, w:W, h:H/2, l:start, r:end, t:c, b:m}]
+            : [{x:0, y:0, w:W, h:H, l:m, r:m, t:start, b:end}];
+  if (g.film && filmCanWiden(g)){   // a film edge wider than the free space makes the photos narrower (never shorter)
+    const band = filmBand(g);
+    out.forEach((R, half) => { for (const [side, trim] of Object.entries(stripSides(g, half))) R[side] = Math.max(R[side], trim + band); });
+  }
+  return out;
+}
+/* Each printed strip of a cut print: print = inside the guides, area = that plus a bleed-wide margin on both sides
+   (backgrounds run past the trim), clip = the half of the page it may paint. Strip 2 = strip 1 moved by cutShift. */
+/* Cut prints: strip 1 = left guide → cut line, strip 2 = cut line → right guide. The left strip loses the bleed
+   (left of its guide) when trimmed, so strip 2's background starts that many pixels into the same image:
+   it is strip 1's background moved by cutShift = half the page minus the bleed. */
+function cutShift(g){ const b = g.bleed || 0; return g.cut === "vertical" ? g.width/2 - b : g.cut === "horizontal" ? g.height/2 - b : 0; }
+function stripAreas(g){   // print = the strip's part inside the guides; area = print plus bleed on both sides
+  const b = g.bleed || 0, W = g.width, H = g.height;
+  if (g.cut === "vertical"){ const S = W/2 - b;
+    return [0, 1].map(h => { const px = h ? W/2 : b;
+      return {clip: {x: h*W/2, y: 0, w: W/2, h: H}, print: {x: px, y: 0, w: S, h: H}, area: {x: px - b, y: 0, w: S + 2*b, h: H}}; }); }
+  if (g.cut === "horizontal"){ const S = H/2 - b;
+    return [0, 1].map(h => { const py = h ? H/2 : b;
+      return {clip: {x: 0, y: h*H/2, w: W, h: H/2}, print: {x: 0, y: py, w: W, h: S}, area: {x: 0, y: py - b, w: W, h: S + 2*b}}; }); }
+  return [{clip: {x: 0, y: 0, w: W, h: H}, print: {x: b, y: b, w: W - 2*b, h: H - 2*b}, area: {x: 0, y: 0, w: W, h: H}}];
+}
+const clipTo = (x, R) => { x.beginPath(); x.rect(R.x, R.y, R.w, R.h); x.clip(); };
+/* the two long edges of a strip (where film holes go) -> distance from that edge to the trim line */
+function stripSides(g, half){   // distance from each long edge of the half to its edge after trimming (0 at the cut)
+  const b = g.bleed;
+  if (g.cut === "vertical") return half === 0 ? {l:b, r:0} : {l:0, r:b};
+  if (g.cut === "horizontal") return half === 0 ? {t:b, b:0} : {t:0, b:b};
+  return g.height >= g.width ? {l:b, r:b} : {t:b, b:b};
+}
+/* sprocket holes, shaped like 35mm film: wider across the strip than along it */
+/* free space beside the photos on the film edges (trim line to photo edge), measured with film off */
+function filmRoom(g){
+  const g0 = {...g, film: false}, bs = computeBoxes(g0); if (!bs) return 0;
+  let room = Infinity;
+  regionsOf(g0).forEach((R, half) => {
+    const hb = bs.filter(b => b.half === half); if (!hb.length) return;
+    for (const [side, trim] of Object.entries(stripSides(g, half))){
+      const d = side === "l" ? Math.min(...hb.map(b => b.x)) - R.x : side === "r" ? R.x + R.w - Math.max(...hb.map(b => b.x + b.w))
+              : side === "t" ? Math.min(...hb.map(b => b.y)) - R.y : R.y + R.h - Math.max(...hb.map(b => b.y + b.h));
+      room = Math.min(room, d - trim);
+    }
+  });
+  return room === Infinity ? 0 : Math.max(0, Math.floor(room));
+}
+/* photo columns side by side across the film (rows for a landscape strip with holes top and bottom) */
+const filmAcross = g => "l" in stripSides(g, 0) ? g.cols : g.rows;
+/* 1–2 columns: the film edge may go wider than the free space (photos get a little narrower).
+   3+ columns or exact imported slots: it stays in the free space so photos never move. */
+const filmCanWiden = g => !g.slots?.length && filmAcross(g) <= 2;
+const filmBand = g => filmCanWiden(g) ? g.film_band : Math.min(g.film_band, filmRoom(g));
+function filmHoles(g){
+  if (!g.film) return [];
+  const band = filmBand(g); if (band < 8) return [];
+  const across = band*0.5, along = band*0.35, pitch = band*0.85, out = [];
+  regionsOf(g).forEach((R, half) => {
+    for (const [side, trim] of Object.entries(stripSides(g, half))){
+      const vert = side === "l" || side === "r", len = vert ? R.h : R.w;
+      const n = Math.floor(len / pitch), first = (len - (n-1)*pitch) / 2, mid = trim + band/2;
+      for (let k = 0; k < n; k++){
+        const pos = first + k*pitch;
+        if (vert){ const cx = side === "l" ? R.x + mid : R.x + R.w - mid;
+          out.push({x: Math.round(cx - across/2), y: Math.round(R.y + pos - along/2), w: Math.round(across), h: Math.round(along)}); }
+        else { const cy = side === "t" ? R.y + mid : R.y + R.h - mid;
+          out.push({x: Math.round(R.x + pos - along/2), y: Math.round(cy - across/2), w: Math.round(along), h: Math.round(across)}); }
+      }
+    }
+  });
+  return out;
 }
 function computeBoxes(g){
+  if (g.slots?.length){   // exact positions (imported template): first half, then second half
+    const halfOf = b => g.cut === "vertical" ? +(b.x + b.w/2 >= g.width/2) : g.cut === "horizontal" ? +(b.y + b.h/2 >= g.height/2) : 0;
+    const bs = g.slots.map(([x, y, w, h]) => ({x, y, w, h})).map(b => ({...b, half: halfOf(b)}));
+    return [...bs.filter(b => b.half === 0), ...bs.filter(b => b.half === 1)];
+  }
   const out = [];
   for (const [half, R] of regionsOf(g).entries()){
     const sw = Math.floor((R.w - R.l - R.r - g.gap*(g.cols-1)) / g.cols);
@@ -454,87 +894,437 @@ function computeBoxes(g){
 /* centre of the logo/caption strip of one half */
 function bandCenter(half){
   const R = regions[half], bs = boxes.filter(b => b.half === half), first = bs[0], last = bs[bs.length-1];
-  const footerSide = st.g.footer >= st.g.header;
+  let footerSide = st.g.footer >= st.g.header;
+  if (st.g.slots?.length)   // exact slots: use whichever end has more free space
+    footerSide = st.g.cut === "horizontal" ? R.x + R.w - (last.x + last.w) >= first.x - R.x : R.y + R.h - (last.y + last.h) >= first.y - R.y;
+  const Pr = isCut() ? stripAreas(st.g)[half].print : {x: R.x, y: R.y, w: R.w, h: R.h};   // centre of the printed strip
   if (st.g.cut === "horizontal"){
     const [a, z] = footerSide ? [last.x + last.w, R.x + R.w] : [R.x, first.x];
-    return [(a+z)/2, R.y + R.h/2];
+    return [(a+z)/2, Pr.y + Pr.h/2];
   }
   const [a, z] = footerSide ? [last.y + last.h, R.y + R.h] : [R.y, first.y];
-  return [R.x + R.w/2, (a+z)/2];
+  return [Pr.x + Pr.w/2, (a+z)/2];
 }
 function buildFrame(){
   const g = st.g, c = document.createElement("canvas"); c.width = g.width; c.height = g.height;
   const x = c.getContext("2d");
-  x.fillStyle = g.background; x.fillRect(0, 0, g.width, g.height);
-  if (st.bgImg){
-    if (isCut() && g.bg_per_half) regions.forEach(R => drawCover(x, st.bgImg, R.x, R.y, R.w, R.h));
-    else drawCover(x, st.bgImg, 0, 0, g.width, g.height);
+  let holesStamped = false;
+  // background layers: colour, gradient, image (the colour shows through a see-through image), pattern, texture
+  const backdrop = (o, R, withPattern) => {
+    o.fillStyle = g.background; o.fillRect(R.x, R.y, R.w, R.h);
+    if (g.bg_gradient) drawGradient(o, g.bg_gradient, R);
+    if (st.bgImg){ o.save(); o.globalAlpha = (g.bg_opacity ?? 100) / 100; drawBackground(o, st.bgImg, R, g); o.restore(); }
+    if (withPattern) drawPattern(o, g, R);
+    if (g.texture?.type) applyTexture(o, g.texture, R, R);
+  };
+  if (isCut() && g.bg_per_half){
+    // Cut prints: paint strip 1 (plus its bleed) once and stamp the very same pixels into strip 2,
+    // so the two printed strips are identical
+    const strips = stripAreas(g), a = strips[0].area, off = document.createElement("canvas");
+    off.width = Math.ceil(a.w); off.height = Math.ceil(a.h);
+    const perStripPattern = g.pattern?.per_half !== false, oc = off.getContext("2d");
+    backdrop(oc, {x: 0, y: 0, w: a.w, h: a.h}, perStripPattern);
+    const c0 = strips[0].clip;   // strip 1's film holes go into the stamp too
+    for (const h of filmHoles(g)) if (h.x >= c0.x && h.x + h.w <= c0.x + c0.w && h.y >= c0.y && h.y + h.h <= c0.y + c0.h)
+      punch(oc, {x: h.x - a.x, y: h.y - a.y, w: h.w, h: h.h}, filmBand(g)*0.08, g.film_holes);
+    holesStamped = true;
+    for (const A of strips){ x.save(); clipTo(x, A.clip); x.drawImage(off, A.area.x, A.area.y); x.restore(); }
+    if (!perStripPattern) drawPattern(x, g);   // one pattern across the whole page
+  } else {
+    backdrop(x, {x: 0, y: 0, w: g.width, h: g.height}, false);
+    drawPattern(x, g);
   }
-  for (const b of boxes){
-    if (g.slot === "transparent") x.clearRect(b.x, b.y, b.w, b.h);
-    else { x.fillStyle = g.slot; x.fillRect(b.x, b.y, b.w, b.h); }
-  }
+  for (const b of boxes) punch(x, b, g.radius || 0, g.slot);
+  if (!holesStamped) for (const b of filmHoles(g)) punch(x, b, filmBand(g)*0.08, g.film_holes);
   if (g.text && boxes.length){
     x.font = fontCss(g.text_font, g.text_size); x.fillStyle = g.text_color;
     x.textAlign = "center"; x.textBaseline = "middle";
     regions.forEach((_, half) => {
       const [cx, cy] = bandCenter(half);
-      x.save(); x.translate(cx, cy);
+      x.save(); setShadow(x, g.text_shadow); x.translate(cx, cy);
       if (g.cut === "horizontal") x.rotate(-Math.PI/2);   // reads upright when the strip is held vertically
       x.fillText(g.text, 0, 0); x.restore();
     });
   }
   frameCanvas = c;
 }
+/* ---------- remove a plain background (logos) ----------
+   1. Background colour: the most common colour on the image's border (or the one you pick).
+   2. Everything connected to the border that looks like that colour (perceptual distance in Lab, under the
+      tolerance) becomes transparent; "inside" removes it everywhere, e.g. the holes in letters.
+   3. Edge pixels next to the removed area are un-mixed: a blended pixel C = a·F + (1-a)·B is split into its
+      logo colour F and transparency a, so there's no light or dark fringe on any background. */
+const SRGB_LIN = new Float32Array(256).map((_, i) => { const c = i / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
+function rgbToLab(r, g, b){
+  const R = SRGB_LIN[r], G = SRGB_LIN[g], B = SRGB_LIN[b];
+  const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787*t + 16/116;
+  const X = f((0.4124*R + 0.3576*G + 0.1805*B) / 0.95047), Y = f(0.2126*R + 0.7152*G + 0.0722*B), Z = f((0.0193*R + 0.1192*G + 0.9505*B) / 1.08883);
+  return [116*Y - 16, 500*(X - Y), 200*(Y - Z)];
+}
+function imagePixels(src){
+  const [w, h] = dims(src), c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h));
+  const x = c.getContext("2d", {willReadFrequently: true}); x.drawImage(src, 0, 0, c.width, c.height);
+  return {c, x, im: x.getImageData(0, 0, c.width, c.height), w: c.width, h: c.height};
+}
+/* the background colour if the border is (mostly) one colour, else null; "clear" if the border is already transparent */
+function detectBackground(src){
+  const {im, w, h} = imagePixels(src), d = im.data, pts = [];
+  const step = Math.max(1, Math.floor((w + h) / 400));
+  for (let x = 0; x < w; x += step){ pts.push((0*w + x)*4, ((h-1)*w + x)*4); }
+  for (let y = 0; y < h; y += step){ pts.push((y*w)*4, (y*w + w - 1)*4); }
+  const opaque = pts.filter(i => d[i+3] > 200);
+  if (opaque.length < pts.length * 0.5) return "clear";
+  const med = k => { const v = opaque.map(i => d[i+k]).sort((a, b) => a - b); return v[v.length >> 1]; };
+  const bg = [med(0), med(1), med(2)], bl = rgbToLab(...bg);
+  const close = opaque.filter(i => { const l = rgbToLab(d[i], d[i+1], d[i+2]); return Math.hypot(l[0]-bl[0], l[1]-bl[1], l[2]-bl[2]) < 12; }).length;
+  return close >= opaque.length * 0.6 ? rgbToHex(...bg) : null;
+}
+function removeBackground(src, o, cache = null){   // cache: colour distances reused while you drag the sliders
+  const {c, x, im, w, h} = imagePixels(src), d = im.data, N = w*h;
+  const B = hexToRgb(parseColor(o.color) || "#ffffff"), bl = rgbToLab(...B);
+  const tol = 2 + o.tolerance * 0.45;                 // slider 0–100 → colour distance (ΔE) 2–47
+  let dist;
+  if (cache && cache.src === src && cache.color === o.color && cache.dist?.length === N) dist = cache.dist;
+  else {
+    dist = new Float32Array(N);
+    for (let i = 0; i < N; i++){ const p = i*4;
+      if (d[p+3] < 8){ dist[i] = 0; continue; }
+      const l = rgbToLab(d[p], d[p+1], d[p+2]); dist[i] = Math.hypot(l[0]-bl[0], l[1]-bl[1], l[2]-bl[2]); }
+    if (cache){ cache.src = src; cache.color = o.color; cache.dist = dist; }
+  }
+  const gone = new Uint8Array(N);
+  const inside = o.inside === true || o.inside === "all" ? "all" : o.inside === "gaps" ? "gaps" : "none";
+  if (inside === "all"){ for (let i = 0; i < N; i++) if (dist[i] <= tol) gone[i] = 1; }
+  else {   // flood from the border
+    const q = new Int32Array(N); let qh = 0, qt = 0;
+    const push = i => { if (!gone[i] && dist[i] <= tol){ gone[i] = 1; q[qt++] = i; } };
+    for (let x2 = 0; x2 < w; x2++){ push(x2); push((h-1)*w + x2); }
+    for (let y = 0; y < h; y++){ push(y*w); push(y*w + w - 1); }
+    while (qh < qt){ const i = q[qh++], px = i % w, py = (i - px) / w;
+      if (px > 0) push(i - 1); if (px < w - 1) push(i + 1); if (py > 0) push(i - w); if (py < h - 1) push(i + w); }
+    if (inside === "gaps"){   // enclosed background-coloured areas that are big (≥ 0.25% of the image) go too; small ones stay
+      const minGap = Math.max(40, Math.round(N * 0.0025)), seen = new Uint8Array(N), comp = new Int32Array(N);
+      for (let s0 = 0; s0 < N; s0++){
+        if (gone[s0] || seen[s0] || dist[s0] > tol) continue;
+        let ch = 0, ct = 0; comp[ct++] = s0; seen[s0] = 1;
+        while (ch < ct){ const i = comp[ch++], px = i % w, py = (i - px) / w;
+          for (const j of [px > 0 ? i-1 : -1, px < w-1 ? i+1 : -1, py > 0 ? i-w : -1, py < h-1 ? i+w : -1])
+            if (j >= 0 && !gone[j] && !seen[j] && dist[j] <= tol){ seen[j] = 1; comp[ct++] = j; } }
+        if (ct >= minGap) for (let k = 0; k < ct; k++) gone[comp[k]] = 1;
+      }
+    }
+  }
+  // clicks ("Click to remove"): the connected area of similar colour around each click
+  for (const ck of o.clicks || []){
+    const sx = Math.min(w - 1, Math.max(0, Math.round(ck.x * (w - 1)))), sy = Math.min(h - 1, Math.max(0, Math.round(ck.y * (h - 1)))), s0 = sy*w + sx, p0 = s0*4;
+    if (d[p0+3] < 8) continue;
+    const cl = rgbToLab(d[p0], d[p0+1], d[p0+2]), seen = new Uint8Array(N), q = [s0]; seen[s0] = 1;
+    while (q.length){ const i = q.pop(); gone[i] = 1; const px = i % w, py = (i - px) / w;
+      for (const j of [px > 0 ? i-1 : -1, px < w-1 ? i+1 : -1, py > 0 ? i-w : -1, py < h-1 ? i+w : -1]){
+        if (j < 0 || seen[j]) continue; seen[j] = 1; const pj = j*4; if (d[pj+3] < 8) continue;
+        const l = rgbToLab(d[pj], d[pj+1], d[pj+2]); if (Math.hypot(l[0]-cl[0], l[1]-cl[1], l[2]-cl[2]) <= tol) q.push(j); } }
+  }
+  // clean up specks: tiny islands left over from JPEG noise (much smaller than any real part of a logo)
+  { const minArea = Math.max(6, Math.round(N * 0.00004)), seen = new Uint8Array(N), q = new Int32Array(N);
+    for (let s0 = 0; s0 < N; s0++){
+      if (gone[s0] || seen[s0] || d[s0*4+3] < 8) continue;
+      let qh = 0, qt = 0; q[qt++] = s0; seen[s0] = 1;
+      while (qh < qt && qt <= minArea){ const i = q[qh++], px = i % w, py = (i - px) / w;
+        for (const j of [px > 0 ? i-1 : -1, px < w-1 ? i+1 : -1, py > 0 ? i-w : -1, py < h-1 ? i+w : -1])
+          if (j >= 0 && !gone[j] && !seen[j] && d[j*4+3] >= 8){ seen[j] = 1; q[qt++] = j; } }
+      if (qt <= minArea && qh >= qt) for (let k = 0; k < qt; k++) gone[q[k]] = 1;   // whole island found and it's tiny
+      else while (qh < qt){ const i = q[qh++], px = i % w, py = (i - px) / w;          // big: just mark the rest as seen
+        for (const j of [px > 0 ? i-1 : -1, px < w-1 ? i+1 : -1, py > 0 ? i-w : -1, py < h-1 ? i+w : -1])
+          if (j >= 0 && !gone[j] && !seen[j] && d[j*4+3] >= 8){ seen[j] = 1; q[qt++] = j; } }
+    }
+  }
+  // edge band: pixels within `soft` steps of the removed area get un-mixed
+  const band = Math.max(1, o.soft | 0), ring = new Uint8Array(N);
+  let front = []; for (let i = 0; i < N; i++) if (gone[i]) front.push(i);
+  for (let k = 1; k <= band && front.length; k++){
+    const next = [];
+    for (const i of front){ const px = i % w, py = (i - px) / w;
+      for (const j of [px > 0 ? i-1 : -1, px < w-1 ? i+1 : -1, py > 0 ? i-w : -1, py < h-1 ? i+w : -1])
+        if (j >= 0 && !gone[j] && !ring[j]){ ring[j] = k; next.push(j); } }
+    front = next;
+  }
+  // un-mix each edge pixel against the logo colour right next to it: C = a·F + (1-a)·B  →  a = (C-B)·(F-B) / |F-B|²
+  const orig = new Uint8ClampedArray(d), R2 = band + 3;
+  for (let i = 0; i < N; i++){
+    const p = i*4;
+    if (gone[i]){ d[p+3] = 0; continue; }
+    if (!ring[i] || orig[p+3] === 0) continue;
+    const px = i % w, py = (i - px) / w;
+    let F = null, best = 1e9;
+    for (let yy = Math.max(0, py - R2); yy <= Math.min(h - 1, py + R2); yy++)
+      for (let xx = Math.max(0, px - R2); xx <= Math.min(w - 1, px + R2); xx++){
+        const j = yy*w + xx; if (gone[j] || ring[j]) continue;          // solid logo pixels only
+        const dd = (xx - px)*(xx - px) + (yy - py)*(yy - py); if (dd < best){ best = dd; F = j*4; } }
+    let a, out;
+    const C = [orig[p], orig[p+1], orig[p+2]];
+    if (F !== null){
+      const Fc = [orig[F], orig[F+1], orig[F+2]], fb = Fc.map((v, k) => v - B[k]), n2 = fb[0]*fb[0] + fb[1]*fb[1] + fb[2]*fb[2];
+      if (n2 > 400){ a = ((C[0]-B[0])*fb[0] + (C[1]-B[1])*fb[1] + (C[2]-B[2])*fb[2]) / n2; out = Fc; }
+    }
+    if (a === undefined){   // thin strokes with no solid pixel nearby: smallest opacity that explains the pixel
+      a = 0; for (let k = 0; k < 3; k++){ const Ck = C[k], Bk = B[k];
+        const ak = Ck > Bk ? (Ck - Bk) / (255 - Bk || 1) : Ck < Bk ? (Bk - Ck) / (Bk || 1) : 0; if (ak > a) a = ak; }
+      out = C.map((v, k) => B[k] + (v - B[k]) / Math.max(a, 0.004));
+    }
+    a = Math.max(0, Math.min(1, a));
+    if (a < 0.02){ d[p+3] = 0; continue; }
+    if (a > 0.97) continue;                                               // already solid: leave it exactly as it was
+    for (let k = 0; k < 3; k++) d[p+k] = Math.max(0, Math.min(255, Math.round(out[k])));
+    d[p+3] = Math.round(orig[p+3] * a);
+  }
+  // boxes ("Erase a box"): everything inside goes, sharp-edged
+  for (const r of o.boxes || []){
+    const x0 = Math.max(0, Math.floor(Math.min(r.x0, r.x1) * w)), x1 = Math.min(w, Math.ceil(Math.max(r.x0, r.x1) * w));
+    const y0 = Math.max(0, Math.floor(Math.min(r.y0, r.y1) * h)), y1 = Math.min(h, Math.ceil(Math.max(r.y0, r.y1) * h));
+    for (let y = y0; y < y1; y++) for (let x2 = x0; x2 < x1; x2++) d[(y*w + x2)*4 + 3] = 0;
+  }
+  x.putImageData(im, 0, 0);
+  return c;
+}
+
+/* ---------- sticker tint ----------
+   "color" keeps the sticker's light and dark (only hue and saturation change); "solid" lays flat colour over it.
+   Either way only the sticker's own pixels are touched. The tinted copy is cached on the sticker. */
+function tintedImage(s){
+  const t = s.tint; if (!t || !(t.strength > 0)) return s.img;
+  const key = [t.color, t.strength, t.mode, s.img.width, s.img.height, s.text || ""].join("|");
+  if (s._tintKey === key && s._tintCanvas && s._tintSrc === s.img) return s._tintCanvas;
+  const [w, h] = dims(s.img), c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h));
+  const x = c.getContext("2d");
+  x.drawImage(s.img, 0, 0, c.width, c.height);
+  x.globalCompositeOperation = t.mode === "solid" ? "source-atop" : "color";
+  x.globalAlpha = t.strength / 100; x.fillStyle = t.color; x.fillRect(0, 0, c.width, c.height);
+  x.globalCompositeOperation = "destination-in"; x.globalAlpha = 1; x.drawImage(s.img, 0, 0, c.width, c.height);   // keep the sticker's shape
+  s._tintKey = key; s._tintCanvas = c; s._tintSrc = s.img;
+  return c;
+}
+
+/* ---------- shadows (stickers and caption) ----------
+   angle: 0° casts to the right, 90° down. The offset is in page pixels, so it doesn't turn with a rotated sticker. */
+const SHADOW_DEFAULT = {color: "#000000", angle: 45, dist: 14, blur: 18, opacity: 55};
+function setShadow(x, sh){
+  if (!sh) return;
+  const [r, g, b] = hexToRgb(parseColor(sh.color) || "#000000"), a = sh.angle * Math.PI / 180;
+  x.shadowColor = `rgba(${r},${g},${b},${(sh.opacity ?? 55) / 100})`; x.shadowBlur = sh.blur;
+  x.shadowOffsetX = Math.cos(a) * sh.dist; x.shadowOffsetY = Math.sin(a) * sh.dist;
+}
+
+/* ---------- paper textures ----------
+   A 512 px grey tile (128 = no change) made from a fixed random sequence, repeated over the page and blended
+   with "hard light" so it shows on dark and light backgrounds. make_templates.py builds the identical tile. */
+const TEX_SIZE = 512;
+const TEXTURES = [["matte", "Matte"], ["linen", "Linen"], ["watercolor", "Watercolour"], ["kraft", "Kraft"], ["canvas", "Canvas"], ["recycled", "Recycled"]];
+function hashU(i, seed){   // the (i+1)-th value of mulberry32(seed), without stepping through the others
+  const a = (seed + Math.imul(i + 1, 0x6D2B79F5)) | 0;
+  let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296;
+}
+function texDeviation(type){   // Float64Array of S*S values, roughly -1..1
+  const S = TEX_SIZE, out = new Float64Array(S*S);
+  const white = seed => { const a = new Float64Array(S*S); for (let i = 0; i < S*S; i++) a[i] = hashU(i, seed); return a; };
+  const vnoise = (cx, cy, seed) => {   // smooth value noise that tiles seamlessly
+    const g = new Float64Array(cx*cy); for (let i = 0; i < cx*cy; i++) g[i] = hashU(i, seed);
+    const a = new Float64Array(S*S);
+    for (let y = 0; y < S; y++){ const fy = y*cy/S, j0 = Math.floor(fy), ty = fy - j0, sy = ty*ty*(3 - 2*ty), j1 = (j0 + 1) % cy;
+      for (let x = 0; x < S; x++){ const fx = x*cx/S, i0 = Math.floor(fx), tx = fx - i0, sx = tx*tx*(3 - 2*tx), i1 = (i0 + 1) % cx;
+        const top = g[j0*cx + i0]*(1 - sx) + g[j0*cx + i1]*sx, bot = g[j1*cx + i0]*(1 - sx) + g[j1*cx + i1]*sx;
+        a[y*S + x] = top*(1 - sy) + bot*sy; } }
+    return a;
+  };
+  const W1 = white(101), W2 = white(202);
+  if (type === "matte"){ const v = vnoise(64, 64, 303); for (let i = 0; i < S*S; i++) out[i] = 0.55*(2*W1[i] - 1) + 0.45*(2*v[i] - 1); }
+  else if (type === "linen"){ for (let y = 0; y < S; y++) for (let x = 0; x < S; x++){ const i = y*S + x;
+    out[i] = 0.45*(2*hashU(y, 404) - 1) + 0.45*(2*hashU(x, 505) - 1) + 0.25*(2*W1[i] - 1); } }
+  else if (type === "watercolor"){ const a = vnoise(3, 3, 606), b = vnoise(7, 7, 707), c = vnoise(16, 16, 808);
+    for (let i = 0; i < S*S; i++) out[i] = 2.2*((0.5*a[i] + 0.3*b[i] + 0.2*c[i]) - 0.5) + 0.25*(2*W1[i] - 1); }
+  else if (type === "kraft"){ const v = vnoise(64, 6, 909);
+    for (let i = 0; i < S*S; i++) out[i] = 0.6*(2*v[i] - 1) + 0.35*(2*W1[i] - 1) + (W2[i] > 0.992 ? -1.6 : 0); }
+  else if (type === "canvas"){ const v = vnoise(32, 32, 1010);
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++){ const i = y*S + x;
+      out[i] = 0.55*Math.sin(2*Math.PI*(x + 0.5)/8)*Math.sin(2*Math.PI*(y + 0.5)/8) + 0.25*(2*W1[i] - 1) + 0.2*(2*v[i] - 1); } }
+  else if (type === "recycled"){ const v = vnoise(48, 48, 1111);
+    for (let i = 0; i < S*S; i++) out[i] = 0.3*(2*W1[i] - 1) + 0.3*(2*v[i] - 1) + (W2[i] > 0.996 ? -2.5 : W2[i] < 0.002 ? 1.8 : 0); }
+  return out;
+}
+const TEX_AMP = {matte: 0.35, linen: 0.3, watercolor: 0.45, kraft: 0.35, canvas: 0.4, recycled: 0.35};
+const TEX_CACHE = {};
+function textureTile(type){
+  if (TEX_CACHE[type]) return TEX_CACHE[type];
+  const S = TEX_SIZE, dev = texDeviation(type), amp = TEX_AMP[type] || 0.35;
+  const c = document.createElement("canvas"); c.width = c.height = S; const x = c.getContext("2d"), im = x.createImageData(S, S);
+  for (let i = 0; i < S*S; i++){ const v = Math.max(0, Math.min(255, Math.round(128 + 127*amp*dev[i]))); im.data[i*4] = im.data[i*4+1] = im.data[i*4+2] = v; im.data[i*4+3] = 255; }
+  x.putImageData(im, 0, 0);
+  return TEX_CACHE[type] = c;
+}
+function applyTexture(x, tex, R, anchor = {x: 0, y: 0}){   // tiles start at anchor (each strip's own corner)
+  const tile = textureTile(tex.type); if (!tile) return;
+  x.save(); x.globalCompositeOperation = "hard-light"; x.globalAlpha = (tex.strength ?? 60) / 100;
+  x.translate(anchor.x, anchor.y); x.fillStyle = x.createPattern(tile, "repeat"); x.fillRect(R.x - anchor.x, R.y - anchor.y, R.w, R.h); x.restore();
+}
+
+/* gradient backgrounds (same maths as make_templates.py). Angle works like CSS: 0° = towards the top, 90° = towards the right */
+function drawGradient(x, gr, R){
+  const cols = gr.colors.map(c => parseColor(c) || "#000000");
+  if (gr.type === "corners"){   // bilinear blend of top-left, top-right, bottom-left, bottom-right
+    const n = 64, c = document.createElement("canvas"); c.width = c.height = n;
+    const cx = c.getContext("2d"), im = cx.createImageData(n, n), [tl, tr, bl, br] = [0, 1, 2, 3].map(i => hexToRgb(cols[i] || cols[cols.length - 1]));
+    for (let y = 0; y < n; y++) for (let k = 0; k < n; k++){
+      const u = k / (n - 1), v = y / (n - 1), o = (y*n + k) * 4;
+      for (let ch = 0; ch < 3; ch++) im.data[o + ch] = (tl[ch]*(1-u) + tr[ch]*u) * (1-v) + (bl[ch]*(1-u) + br[ch]*u) * v;
+      im.data[o + 3] = 255;
+    }
+    cx.putImageData(im, 0, 0);
+    x.save(); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = "high"; x.drawImage(c, R.x, R.y, R.w, R.h); x.restore();
+    return;
+  }
+  const cxp = R.x + R.w/2, cyp = R.y + R.h/2;
+  let grad;
+  if (gr.type === "radial") grad = x.createRadialGradient(cxp, cyp, 0, cxp, cyp, Math.hypot(R.w, R.h) / 2);
+  else { const a = (gr.angle ?? 180) * Math.PI / 180, dx = Math.sin(a), dy = -Math.cos(a), half = (Math.abs(R.w*dx) + Math.abs(R.h*dy)) / 2;
+    grad = x.createLinearGradient(cxp - dx*half, cyp - dy*half, cxp + dx*half, cyp + dy*half); }
+  cols.forEach((c, i) => grad.addColorStop(cols.length > 1 ? i / (cols.length - 1) : 0, c));
+  x.fillStyle = grad; x.fillRect(R.x, R.y, R.w, R.h);
+}
+/* background image: fill / stretch / fit, then rotate, zoom and move, clipped to its area
+   (same maths as make_templates.py) */
+function bgTransform(iw, ih, R, g){
+  const rot = (g.bg_rotate || 0) * Math.PI / 180, c = Math.abs(Math.cos(rot)), sn = Math.abs(Math.sin(rot));
+  const bw = iw*c + ih*sn, bh = iw*sn + ih*c, z = (g.bg_zoom ?? 100) / 100, fit = g.bg_fit || "cover";
+  let sx, sy;
+  if (fit === "stretch"){ sx = R.w / bw; sy = R.h / bh; }
+  else if (fit === "contain"){ sx = sy = Math.min(R.w / bw, R.h / bh); }
+  else { sx = sy = Math.max((R.w*c + R.h*sn) / iw, (R.w*sn + R.h*c) / ih); }   // no empty corners even when turned
+  return {rot, sx: sx*z, sy: sy*z, cx: R.x + R.w/2 + (g.bg_x || 0)/100 * R.w, cy: R.y + R.h/2 + (g.bg_y || 0)/100 * R.h};
+}
+function drawBackground(x, img, R, g){
+  const plain = (g.bg_fit || "cover") === "cover" && !g.bg_rotate && (g.bg_zoom ?? 100) === 100 && !g.bg_x && !g.bg_y;
+  if (plain) return drawCover(x, img, R.x, R.y, R.w, R.h);
+  const [iw, ih] = dims(img), t = bgTransform(iw, ih, R, g);
+  x.save(); x.beginPath(); x.rect(R.x, R.y, R.w, R.h); x.clip();
+  x.translate(t.cx, t.cy); x.scale(t.sx, t.sy); x.rotate(t.rot); x.drawImage(img, -iw/2, -ih/2, iw, ih);
+  x.restore();
+}
+/* rounded-rectangle outline */
+function roundPath(x, b, r){
+  r = Math.max(0, Math.min(r, b.w/2, b.h/2)); x.beginPath();
+  if (r >= 1 && x.roundRect) x.roundRect(b.x, b.y, b.w, b.h, r); else x.rect(b.x, b.y, b.w, b.h);
+}
+/* fill a (rounded) rectangle with a colour, or cut it out so it's see-through */
+function punch(x, b, r, fill){
+  x.save();
+  if (fill === "transparent"){ x.globalCompositeOperation = "destination-out"; x.fillStyle = "#000"; } else x.fillStyle = fill;
+  roundPath(x, b, r); x.fill(); x.restore();
+}
 function relayout(){
   const b = computeBoxes(st.g), warn = $("#layoutWarn");
   warn.hidden = !!b; if (!b){ warn.textContent = "Margins / gaps / spaces leave no room for photos."; return; }
   boxes = b; regions = regionsOf(st.g); cv.width = W(); cv.height = H(); buildFrame(); fit(); render(); updateStatus();
+  syncRadiusSlider(); updateLayoutButton();
 }
+/* the slider goes from square (0) to fully round: half the short side of the smallest slot */
+function syncRadiusSlider(){
+  const max = Math.floor(Math.min(...boxes.map(b => Math.min(b.w, b.h))) / 2), r = $("#radiusRange");
+  r.max = max; r.value = Math.min(st.g.radius || 0, max);
+}
+let zoom = 1;   // 1 = fit the window
 function fit(){
-  const r = stage.getBoundingClientRect(), s = Math.min((r.width-48)/W(), (r.height-48)/H());
+  const r = stage.getBoundingClientRect(), s = Math.min((r.width-48-38)/W(), (r.height-24-84-64)/H()) * zoom;   // stage padding + plate
   cv.style.width = Math.max(50, W()*s) + "px"; cv.style.height = Math.max(50, H()*s) + "px";
 }
 new ResizeObserver(() => { if (st.g) { fit(); render(); } }).observe(stage);
+/* zoom, keeping the point under the cursor (or the middle of the view) in place */
+function setZoom(z, at = null){
+  z = Math.min(8, Math.max(0.25, z));
+  const sr = stage.getBoundingClientRect(), r0 = cv.getBoundingClientRect();
+  const ax = at ? at.clientX : sr.left + sr.width/2, ay = at ? at.clientY : sr.top + sr.height/2;
+  const fx = (ax - r0.left) / r0.width, fy = (ay - r0.top) / r0.height;
+  zoom = z; fit(); render();
+  const r1 = cv.getBoundingClientRect();
+  stage.scrollLeft += r1.left + fx*r1.width - ax; stage.scrollTop += r1.top + fy*r1.height - ay;
+  $("#zoomPct").textContent = zoom === 1 ? "Fit" : Math.round(zoom*100) + "%";
+}
+$("#zoomIn").onclick = () => setZoom(zoom * 1.25);
+$("#zoomOut").onclick = () => setZoom(zoom / 1.25);
+$("#zoomPct").onclick = () => setZoom(1);
+stage.addEventListener("wheel", e => {   // ⌘/Ctrl + scroll, or trackpad pinch in Chrome/Brave
+  if (!(e.ctrlKey || e.metaKey)) return;
+  e.preventDefault(); setZoom(zoom * Math.exp(-Math.max(-25, Math.min(25, e.deltaY)) * 0.01), e);
+}, {passive: false});
+let pinchStart = 1;   // trackpad pinch in Safari / the desktop app
+stage.addEventListener("gesturestart", e => { e.preventDefault(); pinchStart = zoom; });
+stage.addEventListener("gesturechange", e => { e.preventDefault(); setZoom(pinchStart * e.scale, e); });
+/* hold Space and drag to move around when zoomed in */
+let spaceDown = false, pan = null;
+stage.addEventListener("pointerdown", e => {
+  if (!spaceDown) return;
+  e.preventDefault(); e.stopPropagation();
+  pan = {x: e.clientX, y: e.clientY, l: stage.scrollLeft, t: stage.scrollTop}; stage.classList.add("dragging");
+}, true);
+window.addEventListener("pointermove", e => { if (pan){ stage.scrollLeft = pan.l - (e.clientX - pan.x); stage.scrollTop = pan.t - (e.clientY - pan.y); } });
+window.addEventListener("pointerup", () => { pan = null; stage.classList.remove("dragging"); });
+window.addEventListener("keyup", e => { if (e.code === "Space"){ spaceDown = false; stage.classList.remove("panning"); } });
+/* print guides on/off: G, or ⌘; like Photoshop */
+function toggleGuides(on = !$("#showGuides").checked){
+  $("#showGuides").checked = $("#guidesTop").checked = on; render();
+  toast(on ? "Guides shown (G)" : "Guides hidden (G)");
+}
+$("#guidesTop").onchange = e => toggleGuides(e.target.checked);
 
 /* ---------- drawing ---------- */
 function stickerSize(s){ const [iw, ih] = dims(s.img), w = s.w*U(); return [w, w*ih/iw]; }
 /* photos: with "same photos", slot N of the second half shows the same photo as slot N of the first */
-const perHalf = () => st.g.rows * st.g.cols;
+const perHalf = () => st.g.slots?.length ? boxes.filter(b => b.half === 0).length : st.g.rows * st.g.cols;
 const photoKey = i => isCut() && st.g.same_photos ? i % perHalf() : i;
 const keyCount = () => isCut() && st.g.same_photos ? perHalf() : boxes.length;
 /* a sticker set to "both halves" is drawn again at the same spot in the other half */
 function instances(s){
   const out = [[s.x, s.y]];
   if (isCut() && s.both){
-    if (st.g.cut === "vertical") out.push([s.x < 0.5 ? s.x + 0.5 : s.x - 0.5, s.y]);
-    else out.push([s.x, s.y < 0.5 ? s.y + 0.5 : s.y - 0.5]);
+    if (st.g.cut === "vertical"){ const t = cutShift(st.g) / W(); out.push([s.x < 0.5 ? s.x + t : s.x - t, s.y]); }
+    else { const t = cutShift(st.g) / H(); out.push([s.x, s.y < 0.5 ? s.y + t : s.y - t]); }
   }
   return out;
 }
 const halfOf = s => st.g.cut === "vertical" ? (s.x < 0.5 ? 0 : 1) : st.g.cut === "horizontal" ? (s.y < 0.5 ? 0 : 1) : 0;
 function paint(x, {photos=true, ui=false, emptyFill=null} = {}){
   x.clearRect(0, 0, W(), H());
-  x.drawImage(frameCanvas, 0, 0);
+  // see-through slots: photos go under the frame (like on the machine), so its rounded corners sit on top
+  const under = st.g.slot === "transparent";
+  if (!under) x.drawImage(frameCanvas, 0, 0);
   boxes.forEach((b, i) => {
     const key = photoKey(i), p = st.photos[key];
+    x.save(); roundPath(x, b, under ? 0 : st.g.radius || 0); x.clip();
     if (photos && p) drawCover(x, p, b.x, b.y, b.w, b.h);
     else if (ui){
       x.fillStyle = "#dcdce2"; x.fillRect(b.x, b.y, b.w, b.h);
       x.fillStyle = "#8e8e9c"; x.font = `600 ${Math.min(b.w, b.h)*0.09}px -apple-system, sans-serif`;
       x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(`Photo ${key+1}`, b.x + b.w/2, b.y + b.h/2);
     } else if (emptyFill){ x.fillStyle = emptyFill; x.fillRect(b.x, b.y, b.w, b.h); }
+    x.restore();
   });
+  if (under) x.drawImage(frameCanvas, 0, 0);
   for (const s of st.stickers){
+    if (s.hidden) continue;   // hidden in the Layers panel: not drawn, not exported
     const [w, h] = stickerSize(s);
     for (const [fx, fy] of instances(s)){
-      x.save(); x.globalAlpha = s.opacity ?? 1; x.translate(fx*W(), fy*H()); x.rotate(s.rot*Math.PI/180);
+      x.save();
+      if (isCut()){   // a sticker stays inside its own strip: nothing shows past the cut line
+        const R = regions[st.g.cut === "vertical" ? (fx < 0.5 ? 0 : 1) : (fy < 0.5 ? 0 : 1)];
+        if (R){ x.beginPath(); x.rect(R.x, R.y, R.w, R.h); x.clip(); }
+      }
+      x.globalAlpha = s.opacity ?? 1; setShadow(x, s.shadow); x.translate(fx*W(), fy*H()); x.rotate(s.rot*Math.PI/180);
       if (s.flip) x.scale(-1, 1);
-      x.drawImage(s.img, -w/2, -h/2, w, h); x.restore();
+      x.drawImage(tintedImage(s), -w/2, -h/2, w, h); x.restore();
     }
   }
   if (ui && $("#showGuides").checked) drawGuides(x);
   if (ui && drag && drag.snap) drawSnapLines(x);
+  if (ui && rmbgDrag) drawRmbgDrag(x);
   if (ui && st.sel) drawSelection(x, st.sel);
 }
 const k = () => W() / cv.getBoundingClientRect().width;   // canvas pixels per screen pixel
@@ -542,6 +1332,11 @@ function drawGuides(x){
   const g = st.g, kk = k(), w = W(), h = H();
   const line = (x1, y1, x2, y2, color, dash=[]) => { x.strokeStyle = color; x.setLineDash(dash.map(d => d*kk));
     x.beginPath(); x.moveTo(x1, y1); x.lineTo(x2, y2); x.stroke(); };
+  // shade what gets trimmed off (outside every printed strip), so the preview shows exactly what is printed
+  { const bb = g.bleed || 0;   // dim the bleed that is trimmed off all round: four plain bands, no tricks
+    if (bb > 0){ x.save(); x.fillStyle = "rgba(8, 8, 12, 0.55)";
+      x.fillRect(0, 0, w, bb); x.fillRect(0, h - bb, w, bb); x.fillRect(0, bb, bb, h - 2*bb); x.fillRect(w - bb, bb, bb, h - 2*bb);
+      x.restore(); } }
   x.save(); x.lineWidth = 1.5*kk;
   const TRIM = "#00c8ff", CUT = "#ff2bd6", MID = "#00c8ff70";
   const b = g.bleed || 0;
@@ -549,10 +1344,10 @@ function drawGuides(x){
   const c = g.cut_gap/2;
   if (g.cut === "vertical"){
     line(w/2, 0, w/2, h, CUT, [12, 6]); line(w/2-c, 0, w/2-c, h, TRIM); line(w/2+c, 0, w/2+c, h, TRIM);
-    line(w/4, 0, w/4, h, MID, [4, 6]); line(3*w/4, 0, 3*w/4, h, MID, [4, 6]);
+    for (const A of stripAreas(g)) line(A.print.x + A.print.w/2, 0, A.print.x + A.print.w/2, h, MID, [4, 6]);
   } else if (g.cut === "horizontal"){
     line(0, h/2, w, h/2, CUT, [12, 6]); line(0, h/2-c, w, h/2-c, TRIM); line(0, h/2+c, w, h/2+c, TRIM);
-    line(0, h/4, w, h/4, MID, [4, 6]); line(0, 3*h/4, w, 3*h/4, MID, [4, 6]);
+    for (const A of stripAreas(g)) line(0, A.print.y + A.print.h/2, w, A.print.y + A.print.h/2, MID, [4, 6]);
   } else line(w/2, 0, w/2, h, MID, [4, 6]);
   if (st.psd){
     const sx = w/st.psd.w, sy = h/st.psd.h;
@@ -573,14 +1368,14 @@ function drawSelection(x, s){
   const [w, h] = stickerSize(s), kk = k(), hp = handlePos(s);
   for (const [fx, fy] of instances(s).slice(1)){   // faint outline on the mirrored copy
     x.save(); x.translate(fx*W(), fy*H()); x.rotate(s.rot*Math.PI/180);
-    x.lineWidth = 1.5*kk; x.strokeStyle = "#ff4f8b99"; x.setLineDash([4*kk, 6*kk]); x.strokeRect(-w/2, -h/2, w, h); x.restore();
+    x.lineWidth = 1.5*kk; x.strokeStyle = "#94a3b899"; x.setLineDash([4*kk, 6*kk]); x.strokeRect(-w/2, -h/2, w, h); x.restore();
   }
   x.save(); x.translate(s.x*W(), s.y*H()); x.rotate(s.rot*Math.PI/180);
-  x.lineWidth = 2*kk; x.strokeStyle = "#ff4f8b"; x.setLineDash([7*kk, 5*kk]); x.strokeRect(-w/2, -h/2, w, h);
+  x.lineWidth = 2*kk; x.strokeStyle = "#94a3b8"; x.setLineDash([7*kk, 5*kk]); x.strokeRect(-w/2, -h/2, w, h);
   x.setLineDash([]); x.beginPath(); x.moveTo(0, -h/2); x.lineTo(...hp.rot); x.stroke();
-  const dot = (p, fill, r=9) => { x.beginPath(); x.arc(p[0], p[1], r*kk, 0, 7); x.fillStyle = fill; x.fill();
-    x.lineWidth = 2*kk; x.strokeStyle = "#fff"; x.stroke(); };
-  dot(hp.rot, "#ff4f8b"); dot(hp.scale, "#ff4f8b");
+  const dot = (p, fill, r=9) => { x.beginPath(); x.rect(p[0] - r*kk, p[1] - r*kk, 2*r*kk, 2*r*kk); x.fillStyle = fill; x.fill();
+    x.lineWidth = 2*kk; x.strokeStyle = "#fff"; x.stroke(); };   // square handles
+  dot(hp.rot, "#475569"); dot(hp.scale, "#475569");
   dot(hp.del, "#e5344a", 11);
   x.strokeStyle = "#fff"; x.lineWidth = 2.5*kk; x.beginPath(); const d = 4*kk;
   x.moveTo(hp.del[0]-d, hp.del[1]-d); x.lineTo(hp.del[0]+d, hp.del[1]+d);
@@ -588,7 +1383,7 @@ function drawSelection(x, s){
   x.restore();
 }
 let raf = 0;
-function render(){ if (!raf) raf = requestAnimationFrame(() => { raf = 0; paint(ctx, {ui:true}); }); }
+function render(){ if (!raf) raf = requestAnimationFrame(() => { raf = 0; paint(ctx, {ui:true}); renderLayers(); }); }
 
 /* ---------- hit testing & pointer ---------- */
 function canvasPoint(e){ const r = cv.getBoundingClientRect();
@@ -603,6 +1398,7 @@ function handleAt(s, px, py){
 function stickerAt(px, py){   // returns {s, pos}: which sticker, and which copy of it was hit
   for (let i = st.stickers.length - 1; i >= 0; i--){
     const s = st.stickers[i], [w, h] = stickerSize(s);
+    if (s.hidden) continue;
     for (const pos of instances(s)){
       const [lx, ly] = toLocal(s, px, py, pos);
       if (Math.abs(lx) <= w/2 && Math.abs(ly) <= h/2) return {s, pos};
@@ -613,8 +1409,9 @@ function stickerAt(px, py){   // returns {s, pos}: which sticker, and which copy
 /* centre lines a dragged sticker snaps to: page/half centres and the logo strip of each half */
 function snapTargets(){
   const xs = [], ys = [];
-  if (st.g.cut === "vertical") xs.push(W()/4, 3*W()/4); else xs.push(W()/2);
-  if (st.g.cut === "horizontal") ys.push(H()/4, 3*H()/4); else ys.push(H()/2);
+  const P = stripAreas(st.g).map(A => A.print);
+  if (st.g.cut === "vertical") xs.push(...P.map(p => p.x + p.w/2)); else xs.push(W()/2);
+  if (st.g.cut === "horizontal") ys.push(...P.map(p => p.y + p.h/2)); else ys.push(H()/2);
   regions.forEach((_, half) => { const [bx, by] = bandCenter(half); xs.push(bx); ys.push(by); });
   return {xs, ys};
 }
@@ -678,11 +1475,11 @@ stage.addEventListener("drop", async e => {
   e.preventDefault(); stage.classList.remove("over");
   const [px, py] = canvasPoint(e), key = e.dataTransfer.getData("text/x-sticker");
   if (key) return addFromLibrary(key, px, py);
-  const psd = [...e.dataTransfer.files].find(isPsd); if (psd) return loadPsd(psd);
+  const psd = [...e.dataTransfer.files].find(isPsd); if (psd) return importTemplate(psd);
   const files = [...e.dataTransfer.files].filter(isImage); if (!files.length) return;
   const i = slotAt(px, py);
   if (i >= 0) return addPhotos(files, photoKey(i));
-  for (const f of files) addImageSticker(trimmed(await loadFile(f), f.name), px, py, 0.3);
+  for (const f of files) addImageSticker(trimmed(await loadFile(f), f.name), px, py, 0.3, f.name.replace(/\.[^.]+$/, ""));
 });
 
 /* ---------- photos ---------- */
@@ -700,7 +1497,7 @@ dropZone($("#photoDrop"), f => addPhotos(f));
 $("#clearPhotos").onclick = () => { st.photos = []; render(); };
 
 /* ---------- stickers ---------- */
-function pushHistory(){ undoStack.push({stickers: st.stickers.map(s => ({...s})), sel: st.sel && st.sel.id});
+function pushHistory(){ undoStack.push({stickers: st.stickers.map(s => ({...s, shadow: s.shadow ? {...s.shadow} : null, tint: s.tint ? {...s.tint} : null, rmbg: rmbgCopy(s.rmbg)})), sel: st.sel && st.sel.id});
   if (undoStack.length > 60) undoStack.shift(); }
 function undo(){
   const h = undoStack.pop(); if (!h) return toast("Nothing to undo");
@@ -708,11 +1505,12 @@ function undo(){
 }
 function select(s){ st.sel = s; syncSel(); render(); }
 function addSticker(s){ pushHistory(); st.stickers.push(s); select(s); }
-function addImageSticker(img, px, py, w){
-  addSticker({id:++uid, kind:"img", img, x:px/W(), y:py/H(), w, rot:0, flip:false, opacity:1, both:isCut()});
+function addImageSticker(img, px, py, w, label = "Sticker"){
+  addSticker({id:++uid, kind:"img", img, label, x:px/W(), y:py/H(), w, rot:0, flip:false, opacity:1, both:isCut()});
 }
 /* where clicked library items land: page centre, or centre of the first half when cutting */
-const defaultPoint = () => st.g.cut === "vertical" ? [W()/4, H()/2] : st.g.cut === "horizontal" ? [W()/2, H()/4] : [W()/2, H()/2];
+const defaultPoint = () => { const p = stripAreas(st.g)[0].print;
+  return st.g.cut === "vertical" ? [p.x + p.w/2, H()/2] : st.g.cut === "horizontal" ? [W()/2, p.y + p.h/2] : [W()/2, H()/2]; };
 function renderText(s){
   const size = 200, f = fontCss(s.font, size), c = document.createElement("canvas"), x = c.getContext("2d");
   x.font = f; const tw = Math.max(x.measureText(s.text || " ").width, 20), pad = size*0.25;
@@ -768,7 +1566,8 @@ async function addFromLibrary(key, px, py){
   const it = LIB[key]; if (!it) return;
   try {
     if (!it.img) it.img = it.emoji ? emojiCanvas(it.emoji) : await loadImg(it.src);
-    addImageSticker(it.img, px, py, it.size);
+    const nm = key.slice(2).replace(/\.[^.]+$/, ""), label = key.startsWith("e:") ? "Emoji " + nm : nm.charAt(0).toUpperCase() + nm.slice(1);
+    addImageSticker(it.img, px, py, it.size, label);
   } catch (err) { toast("Couldn't load that sticker", true); }
 }
 function buildLibrary(){
@@ -782,6 +1581,311 @@ async function loadMyStickers(){
   if (!files.length) box.innerHTML = '<div class="empty">Your PNG stickers are kept in the "Stickers" folder.</div>';
   for (const f of files) libTile(box, "m:" + f, {src: await BE.fileUrl("Stickers", f), size:.3, file:f}, f);
 }
+/* ---------- colour picker ----------
+   Our own picker (the macOS desktop window has no built-in one). Each <input type=color> becomes a swatch button;
+   the input stays, hidden, and still gets "input" events, so the code that uses it doesn't change.
+   Colours can also be typed or pasted as codes. */
+const CP_PRESETS = ["#000000","#ffffff","#111111","#7f7f7f","#ff4f8b","#ff2bd6","#e5344a","#ff7a00",
+                    "#ffc800","#2ecc71","#00b8a9","#00c8ff","#2f6bff","#7a4dff","#8b5a2b","#f5e6c8"];
+function parseColor(text){
+  const t = String(text ?? "").trim(); if (!t) return null;
+  const hex = t.replace(/^#/, "");
+  if (/^[0-9a-f]{3}$/i.test(hex)) return "#" + [...hex].map(c => c + c).join("").toLowerCase();
+  if (/^[0-9a-f]{6}$/i.test(hex)) return "#" + hex.toLowerCase();
+  if (/^[0-9a-f]{8}$/i.test(hex)) return "#" + hex.slice(0, 6).toLowerCase();   // ignore alpha
+  const nums = t.replace(/^rgba?\(|\)$/gi, "").split(/[\s,]+/).filter(Boolean);
+  if (nums.length >= 3 && nums.slice(0, 3).every(n => /^\d{1,3}$/.test(n) && +n <= 255)) return rgbToHex(...nums.slice(0, 3).map(Number));
+  const c = document.createElement("canvas"); c.width = c.height = 1;   // names, hsl(), …: paint it and read it back
+  const x = c.getContext("2d", {willReadFrequently: true});
+  x.fillStyle = "#010203"; x.fillStyle = t; if (String(x.fillStyle).toLowerCase() === "#010203") return null;
+  x.fillRect(0, 0, 1, 1); const d = x.getImageData(0, 0, 1, 1).data; return rgbToHex(d[0], d[1], d[2]);
+}
+const hexToRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const rgbToHex = (r, g, b) => "#" + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
+function rgbToHsv(r, g, b){
+  r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), d = mx - Math.min(r, g, b); let h = 0;
+  if (d){ h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; if (h < 0) h += 360; }
+  return [h, mx ? d / mx : 0, mx];
+}
+function hsvToRgb(h, s, v){ const f = n => { const k = (n + h / 60) % 6; return (v - v*s*Math.max(0, Math.min(k, 4 - k, 1))) * 255; }; return [f(5), f(3), f(1)]; }
+
+const CP = {inp: null, btn: null, h: 0, s: 0, v: 0};
+const valueProp = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+function colorField(inp){
+  const btn = document.createElement("button"); btn.type = "button"; btn.className = "cswatch"; btn.title = "Choose a colour, or type a colour code";
+  btn.innerHTML = "<i></i><span></span>";
+  const show = () => { const v = valueProp.get.call(inp); btn.querySelector("i").style.background = v; btn.querySelector("span").textContent = v; };
+  inp.type = "text"; inp.hidden = true;
+  Object.defineProperty(inp, "value", {configurable: true, get(){ return valueProp.get.call(this); }, set(v){ valueProp.set.call(this, v); show(); }});
+  new MutationObserver(() => { btn.disabled = inp.disabled; }).observe(inp, {attributes: true, attributeFilter: ["disabled"]});
+  btn.onclick = e => { e.stopPropagation(); CP.btn === btn && !$("#cpop").hidden ? closeColorPicker() : openColorPicker(inp, btn); };
+  inp.after(btn); show();
+}
+function openColorPicker(inp, btn){
+  CP.inp = inp; CP.btn = btn;
+  inp.dispatchEvent(new Event("pointerdown"));   // lets sticker colours be undone
+  const pop = $("#cpop"); pop.hidden = false;
+  const r = btn.getBoundingClientRect(), pw = pop.offsetWidth || 238, ph = pop.offsetHeight || 330;
+  pop.style.left = Math.max(8, Math.min(r.left, innerWidth - pw - 8)) + "px";
+  pop.style.top = (r.bottom + 6 + ph > innerHeight ? Math.max(8, r.top - ph - 6) : r.bottom + 6) + "px";
+  setPicker(parseColor(inp.value) || "#000000", false); renderRecent();
+  $("#cpCode").classList.remove("bad");
+}
+function closeColorPicker(){
+  if ($("#cpop").hidden) return;
+  $("#cpop").hidden = true; document.body.classList.remove("eyedrop"); eyedrop = false;
+  if (CP.inp) rememberColor(CP.inp.value);
+}
+/* show a colour in the picker; apply=true also sends it to the field */
+function setPicker(hex, apply = true, keepCode = false){
+  [CP.h, CP.s, CP.v] = (([h, s, v]) => [CP.s === 0 && s === 0 ? CP.h : h, s, v])(rgbToHsv(...hexToRgb(hex)));
+  drawSV(); $("#cpHue").value = CP.h; $("#cpPrev").style.background = hex;
+  if (!keepCode) $("#cpCode").value = hex.toUpperCase();
+  if (apply) applyColor(hex);
+}
+function applyColor(hex){
+  if (!CP.inp || CP.inp.disabled) return;
+  CP.inp.value = hex; CP.inp.dispatchEvent(new Event("input", {bubbles: true})); CP.inp.dispatchEvent(new Event("change", {bubbles: true}));
+}
+function fromHSV(){ const hex = rgbToHex(...hsvToRgb(CP.h, CP.s, CP.v)); $("#cpPrev").style.background = hex; $("#cpCode").value = hex.toUpperCase(); $("#cpCode").classList.remove("bad"); drawSV(); applyColor(hex); }
+function drawSV(){
+  const c = $("#cpSV"), x = c.getContext("2d"), w = c.width, h = c.height;
+  x.fillStyle = rgbToHex(...hsvToRgb(CP.h, 1, 1)); x.fillRect(0, 0, w, h);
+  let g = x.createLinearGradient(0, 0, w, 0); g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#ffffff00"); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, "#00000000"); g.addColorStop(1, "#000000"); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  const mx = CP.s*w, my = (1 - CP.v)*h;
+  x.lineWidth = 2; x.strokeStyle = CP.v > 0.6 && CP.s < 0.4 ? "#000" : "#fff"; x.beginPath(); x.arc(mx, my, 6, 0, Math.PI*2); x.stroke();
+}
+{
+  const sv = $("#cpSV");
+  const pick = e => { const r = sv.getBoundingClientRect(); if (!r.width) return;
+    CP.s = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); CP.v = 1 - Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)); fromHSV(); };
+  sv.addEventListener("pointerdown", e => { sv.setPointerCapture?.(e.pointerId); pick(e); });
+  sv.addEventListener("pointermove", e => { if (e.buttons) pick(e); });
+  $("#cpHue").addEventListener("input", e => { CP.h = +e.target.value; fromHSV(); });
+  $("#cpCode").addEventListener("input", e => {
+    const hex = parseColor(e.target.value); e.target.classList.toggle("bad", !hex && e.target.value.trim() !== "");
+    if (hex) setPicker(hex, true, true);
+  });
+  $("#cpCode").addEventListener("keydown", e => { if (e.key === "Enter"){ const hex = parseColor(e.target.value); if (hex){ setPicker(hex); closeColorPicker(); } } });
+  $("#cpCode").addEventListener("blur", e => { const hex = parseColor(e.target.value); if (hex) e.target.value = hex.toUpperCase(); });
+  for (const c of CP_PRESETS){ const b = document.createElement("button"); b.style.background = c; b.title = c.toUpperCase(); b.onclick = () => setPicker(c); $("#cpPresets").append(b); }
+  document.addEventListener("pointerdown", e => { if (!$("#cpop").hidden && !e.target.closest?.("#cpop, .cswatch")) closeColorPicker(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeColorPicker(); });
+}
+function recentColors(){ try { return JSON.parse(localStorage.getItem("recentColors") || "[]"); } catch { return []; } }
+function rememberColor(hex){
+  hex = parseColor(hex); if (!hex) return;
+  const list = [hex, ...recentColors().filter(c => c !== hex)].slice(0, 16);
+  try { localStorage.setItem("recentColors", JSON.stringify(list)); } catch {}
+}
+function renderRecent(){
+  const box = $("#cpRecent"), list = recentColors(); box.innerHTML = ""; $("#cpRecentWrap").hidden = !list.length;
+  for (const c of list){ const b = document.createElement("button"); b.style.background = c; b.title = c.toUpperCase(); b.onclick = () => setPicker(c); box.append(b); }
+}
+/* 💧 pick from the design: the browser's own eyedropper if it has one (whole screen), else click a spot on the design */
+let eyedrop = false;
+$("#cpDrop").onclick = async () => {
+  if (window.EyeDropper){
+    try { const r = await new EyeDropper().open(); const hex = parseColor(r.sRGBHex); if (hex) setPicker(hex); } catch {}
+    return;
+  }
+  eyedrop = true; document.body.classList.add("eyedrop"); toast("Click a spot on the design to take its colour (Esc to cancel)");
+};
+stage.addEventListener("pointerdown", e => {
+  if (!eyedrop) return;
+  e.preventDefault(); e.stopPropagation();
+  eyedrop = false; document.body.classList.remove("eyedrop");
+  const [px, py] = canvasPoint(e), c = document.createElement("canvas"); c.width = W(); c.height = H();
+  const x = c.getContext("2d", {willReadFrequently: true}); paint(x, {photos: true});
+  const d = x.getImageData(Math.min(W() - 1, Math.floor(px)), Math.min(H() - 1, Math.floor(py)), 1, 1).data;
+  if (d[3] < 128) return toast("That spot is see-through. Try another one", true);
+  setPicker(rgbToHex(d[0], d[1], d[2]));
+}, true);
+document.querySelectorAll('input[type="color"]').forEach(colorField);
+
+/* ---------- font picker with previews ----------
+   Replaces the plain font menus. Each font is shown in its own typeface (with your text as the sample);
+   hovering one previews it live on the design, click keeps it, Esc / click away goes back. */
+const FP = {sel: null, btn: null, orig: null, committed: false};
+function fontField(sel){
+  const btn = document.createElement("button"); btn.type = "button"; btn.className = "fontbtn"; btn.title = "Choose a font";
+  btn.innerHTML = "<span></span><i>▾</i>";
+  const show = () => { const v = sel.value, sp = btn.querySelector("span");
+    sp.textContent = v.replace(/ \(not installed\)$/, ""); sp.style.font = fontCss(v, 14); };
+  sel.hidden = true;   // the button is refreshed by setFontSelect / setFontValue
+  btn.onclick = e => { e.stopPropagation(); FP.btn === btn && !$("#fpop").hidden ? closeFontPicker(false) : openFontPicker(sel, btn); };
+  sel.after(btn); FP[sel.id] = show; show();
+}
+function fontSample(){
+  const t = FP.sel?.id === "selFont" ? st.sel?.text : st.g?.text;
+  return (t || "").trim().slice(0, 40);
+}
+function setFontValue(name){ FP.sel.value = name; FP[FP.sel.id]?.(); FP.sel.dispatchEvent(new Event("input", {bubbles: true})); }
+function openFontPicker(sel, btn){
+  closeColorPicker();
+  FP.sel = sel; FP.btn = btn; FP.orig = sel.value; FP.committed = false;
+  sel.dispatchEvent(new Event("pointerdown"));   // lets sticker font changes be undone
+  const pop = $("#fpop"); (btn.closest("label") || btn).after(pop);   // opens in place, under the Font button
+  pop.hidden = false; $("#fpSearch").value = ""; buildFontList("");
+  btn.querySelector("i").textContent = "▴";
+  pop.scrollIntoView?.({block: "nearest"}); $("#fpSearch").focus({preventScroll: true});
+  $("#fpList .fp-item.on")?.scrollIntoView?.({block: "center"});
+}
+function closeFontPicker(keep){
+  if ($("#fpop").hidden) return;
+  $("#fpop").hidden = true; if (FP.btn) FP.btn.querySelector("i").textContent = "▾";
+  if (!keep && !FP.committed && FP.sel && FP.sel.value !== FP.orig) setFontValue(FP.orig);   // undo the hover preview
+}
+function buildFontList(q){
+  const list = $("#fpList"); list.innerHTML = ""; q = q.trim().toLowerCase();
+  const sample = fontSample();
+  for (const group of FP.sel.children){
+    const opts = group.tagName === "OPTGROUP" ? [...group.children] : [group];
+    const shown = opts.filter(o => !q || o.value.toLowerCase().includes(q));
+    if (!shown.length) continue;
+    if (group.tagName === "OPTGROUP"){ const h = document.createElement("h3"); h.textContent = group.label; list.append(h); }
+    for (const o of shown){
+      const b = document.createElement("button"); b.type = "button"; b.className = "fp-item" + (o.value === FP.orig ? " on" : ""); b.dataset.font = o.value;
+      const smp = document.createElement("span"); smp.className = "smp"; smp.textContent = sample || o.value; smp.style.font = fontCss(o.value, 17);
+      const nm = document.createElement("small"); nm.textContent = o.textContent;
+      b.append(smp, nm);
+      b.onmouseenter = () => setFontValue(o.value);                 // live preview on the design
+      b.onclick = () => { setFontValue(o.value); FP.committed = true; closeFontPicker(true); };
+      list.append(b);
+    }
+  }
+  if (!list.children.length) list.innerHTML = '<p class="sub" style="padding:8px">No font matches that name.</p>';
+}
+$("#fpSearch").addEventListener("input", e => buildFontList(e.target.value));
+$("#fpSearch").addEventListener("keydown", e => {
+  const items = [...document.querySelectorAll("#fpList .fp-item")]; let i = items.findIndex(b => b.classList.contains("hl"));
+  if (e.key === "ArrowDown" || e.key === "ArrowUp"){
+    e.preventDefault(); items[i]?.classList.remove("hl");
+    i = Math.max(0, Math.min(items.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)));
+    items[i]?.classList.add("hl"); items[i]?.scrollIntoView?.({block: "nearest"}); if (items[i]) setFontValue(items[i].dataset.font);
+  } else if (e.key === "Enter"){ e.preventDefault(); (items[i] || items[0])?.click(); }
+  else if (e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); closeFontPicker(false); }
+});
+$("#fpList").addEventListener("mouseleave", () => { if (!FP.committed && FP.sel && FP.sel.value !== FP.orig) setFontValue(FP.orig); });
+document.addEventListener("pointerdown", e => { if (!$("#fpop").hidden && !e.target.closest?.("#fpop, .fontbtn")) closeFontPicker(false); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeFontPicker(false); });
+fontField($("#text_font")); fontField($("#selFont"));
+
+/* ---------- pattern: scatter PNGs over the background, behind the photos ----------
+   Items are sticker-library keys: "m:file.png" (Stickers folder), "g:name" (graphics), "e:🎉" (emoji),
+   "s:n" (dropped this session, no templates folder). Same seed = same arrangement (also in make_templates.py). */
+const PATTERN_DEFAULT = {items:[], size:180, gap:80, scatter:60, rotate:25, vary:25, opacity:100, seed:1, per_half:true};
+const PAT_IMG = {}, PAT_SRC = {};
+const pat = () => st.g.pattern || PATTERN_DEFAULT;
+function mulberry32(a){
+  return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+/* staggered rows (like a honeycomb), each item nudged, turned and resized at random */
+function patternPlacements(p, area, n){
+  const rnd = mulberry32(p.seed), cell = Math.max(10, p.size + p.gap), rowH = cell*0.866, j = p.scatter/100 * cell*0.5;
+  const cols = Math.ceil(area.w / cell) + 2, rows = Math.ceil(area.h / rowH) + 2, out = [];
+  for (let r = -1; r < rows; r++){
+    let prev = -1;
+    for (let c = -1; c < cols; c++){
+      const jx = rnd()*2 - 1, jy = rnd()*2 - 1, pick = rnd(), sc = rnd(), rt = rnd();
+      let item = Math.floor(pick*n); if (n > 1 && item === prev) item = (item + 1) % n; prev = item;
+      out.push({x: area.x + c*cell + (r & 1 ? cell/2 : 0) + jx*j, y: area.y + r*rowH + jy*j,
+                item, scale: 1 - sc*p.vary/100, rot: (rt*2 - 1)*p.rotate});
+    }
+  }
+  return out;
+}
+function drawPattern(x, g, only = null){   // only = draw into just this area (one strip, painted once)
+  const p = g.pattern; if (!p?.items?.length) return;
+  loadPatternImages();
+  const imgs = p.items.map(k => PAT_IMG[k]);
+  const strips = only ? [{clip: only, area: only}]
+    : isCut() && p.per_half ? stripAreas(g) : [{clip: {x:0, y:0, w:g.width, h:g.height}, area: {x:0, y:0, w:g.width, h:g.height}}];
+  const A0 = strips[0].area, base = patternPlacements(p, A0, imgs.length);
+  for (const {clip, area: A} of strips){
+    x.save(); clipTo(x, clip); x.globalAlpha = p.opacity/100;
+    for (const q of base){
+      const img = imgs[q.item]; if (!img || img === "missing") continue;
+      const [iw, ih] = dims(img), k = p.size*q.scale / Math.max(iw, ih);
+      x.save(); x.translate(q.x - A0.x + A.x, q.y - A0.y + A.y); x.rotate(q.rot*Math.PI/180);
+      x.drawImage(img, -iw*k/2, -ih*k/2, iw*k, ih*k); x.restore();
+    }
+    x.restore();
+  }
+}
+async function patternImage(key){
+  const name = key.slice(2), it = LIB[key];
+  const img = key.startsWith("e:") ? emojiCanvas(name)
+    : await loadImg(PAT_SRC[key] || it?.src || (key.startsWith("g:") ? GRAPHICS[name] : await BE.fileUrl("Stickers", name)));
+  return trimImage(img)?.img || img;   // spacing follows the visible part, not empty edges
+}
+let patLoading = null;
+function loadPatternImages(){
+  const missing = pat().items.filter(k => !PAT_IMG[k]);
+  if (!missing.length || patLoading) return;
+  patLoading = Promise.allSettled(missing.map(patternImage)).then(rs => {
+    rs.forEach((r, i) => PAT_IMG[missing[i]] = r.status === "fulfilled" ? r.value : "missing");
+    patLoading = null; buildFrame(); render(); renderPatternTiles();
+  });
+}
+function ensurePattern(){ if (!st.g.pattern) st.g.pattern = JSON.parse(JSON.stringify(PATTERN_DEFAULT)); return st.g.pattern; }
+function patternChanged(){ syncPattern(); buildFrame(); render(); updateLayoutButton(); }
+function addPatternItems(keys){
+  const p = ensurePattern(); for (const k of keys) if (!p.items.includes(k)) p.items.push(k);
+  patternChanged();
+}
+const PAT_KEYS = ["gap", "size", "scatter", "rotate", "vary", "opacity"];
+const patText = {gap: v => v + "px", size: v => v + "px", scatter: v => v + "%", rotate: v => "±" + v + "°", vary: v => v + "%", opacity: v => v + "%"};
+function syncPattern(){
+  const p = pat();
+  for (const k of PAT_KEYS){ $("#pat_" + k).value = p[k]; $("#v_" + k).textContent = patText[k](p[k]); }
+  $("#pat_per_half").checked = !!p.per_half; $("#patHalfRow").hidden = !isCut();
+  $("#patternOpts").hidden = !p.items.length; renderPatternTiles(); refreshSections();
+}
+function renderPatternTiles(){
+  const box = $("#patternItems"); box.innerHTML = "";
+  for (const key of pat().items){
+    const b = document.createElement("button"), img = PAT_IMG[key]; b.title = key.slice(2) + " (click × to take it out of the pattern)";
+    if (img && img !== "missing"){
+      const c = document.createElement("canvas"), [iw, ih] = dims(img), k = 64 / Math.max(iw, ih);
+      c.width = Math.max(1, Math.round(iw*k)); c.height = Math.max(1, Math.round(ih*k)); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      c.style.maxWidth = "100%"; c.style.maxHeight = "100%"; b.append(c);
+    } else b.textContent = img === "missing" ? "?" : "…";
+    const del = document.createElement("span"); del.className = "del"; del.textContent = "×";
+    del.onclick = e => { e.stopPropagation(); const p = ensurePattern(); p.items = p.items.filter(k => k !== key); patternChanged(); };
+    b.append(del); box.append(b);
+  }
+}
+async function patternFiles(files){
+  const keys = [];
+  for (const f of files){
+    try {
+      let file = f;
+      if (autoTrim()){ const t = trimImage(await loadFile(f)); if (t) file = await canvasToFile(t.img, f.name); }
+      if (API) keys.push("m:" + await upload("Stickers", file));   // kept in Stickers so saved layouts can find it again
+      else { const key = "s:" + (++uid); PAT_SRC[key] = URL.createObjectURL(file); keys.push(key); }
+    } catch (err) { toast(err.message, true); }
+  }
+  if (API) loadMyStickers();
+  if (keys.length) addPatternItems(keys);
+}
+{
+  const el = $("#patternDrop");
+  el.addEventListener("dragover", e => { e.preventDefault(); e.stopPropagation(); el.classList.add("over"); });
+  el.addEventListener("dragleave", () => el.classList.remove("over"));
+  el.addEventListener("drop", e => { e.preventDefault(); e.stopPropagation(); el.classList.remove("over");
+    const key = e.dataTransfer.getData("text/x-sticker"); if (key) return addPatternItems([key]);
+    const f = [...e.dataTransfer.files].filter(isImage); if (f.length) patternFiles(f); });
+  el.addEventListener("click", async () => { const f = await pickFiles(); if (f.length) patternFiles(f); });
+}
+for (const k of PAT_KEYS) $("#pat_" + k).addEventListener("input", e => {
+  ensurePattern()[k] = +e.target.value; $("#v_" + k).textContent = patText[k](+e.target.value); buildFrame(); render(); });
+$("#pat_per_half").onchange = e => { ensurePattern().per_half = e.target.checked; buildFrame(); render(); };
+$("#patShuffle").onclick = () => { ensurePattern().seed = 1 + Math.floor(Math.random()*1e9); buildFrame(); render(); };
+$("#patClear").onclick = () => { delete st.g.pattern; patternChanged(); };
+
 /* ---------- trimming empty edges ----------
    Crops transparent edges, or (for images with no transparency) a plain border
    of one colour, e.g. a logo sitting on a white background.
@@ -851,7 +1955,7 @@ function syncSel(){
   const s = st.sel; $("#selPanel").hidden = !s; if (!s) return;
   $("#textProps").hidden = s.kind !== "text"; $("#selTrim").hidden = s.kind === "text";
   $("#selSize").value = Math.round(s.w*100); $("#selRot").value = Math.round(s.rot);
-  $("#selOpacity").value = Math.round((s.opacity ?? 1)*100);
+  $("#selOpacity").value = Math.round((s.opacity ?? 1)*100); fillShadow("sel", s.shadow); fillTint(s.tint); fillRmbg(s);
   $("#selBothRow").hidden = !isCut(); $("#selBoth").checked = !!s.both;
   $("#selBand").disabled = !boxes.length;
   if (s.kind === "text"){
@@ -866,6 +1970,132 @@ const onSel = (id, fn) => { const el = $(id);
 onSel("#selSize", (s, el) => s.w = el.value/100);
 onSel("#selRot", (s, el) => s.rot = +el.value);
 onSel("#selOpacity", (s, el) => s.opacity = el.value/100);
+/* shadow controls: the same five settings for a sticker (sel…) and for the caption (cap…) */
+const SH_KEYS = {ShAngle: "angle", ShDist: "dist", ShBlur: "blur", ShOpacity: "opacity"};
+function fillShadow(prefix, sh){
+  $("#" + prefix + "Shadow").checked = !!sh; $("#" + prefix + "ShadowOpts").hidden = !sh;
+  const v = sh || SHADOW_DEFAULT;
+  $("#" + prefix + "ShColor").value = parseColor(v.color) || "#000000";
+  for (const [id, k] of Object.entries(SH_KEYS)) $("#" + prefix + id).value = v[k];
+  paintRanges();
+}
+const lastShadow = {sel: null, cap: null};
+/* remove background */
+const RMBG_DEFAULT = {color: "#ffffff", tolerance: 25, soft: 2, inside: "gaps", clicks: [], boxes: []};
+const rmbgCopy = r => r ? JSON.parse(JSON.stringify(r)) : null;
+function fillRmbg(s){
+  const on = !!s.rmbg; $("#rmbgBox").hidden = s.kind === "text";
+  $("#selRmbg").checked = on; $("#selRmbgOpts").hidden = !on;
+  const v = s.rmbg || RMBG_DEFAULT;
+  $("#selRmbgColor").value = parseColor(v.color) || "#ffffff"; $("#selRmbgTol").value = v.tolerance; $("#selRmbgSoft").value = v.soft;
+  const ins = v.inside === true ? "all" : v.inside || "none";
+  for (const b of document.querySelectorAll("#selRmbgInsideSeg button")) b.classList.toggle("on", b.dataset.inside === ins);
+  const edits = (v.clicks?.length || 0) + (v.boxes?.length || 0);
+  $("#rmbgClearEdits").disabled = !edits;
+  if (!on) setRmbgTool(null);
+  $("#rmbgHint").textContent = rmbgTool === "wand" ? "Click an area on the sticker to remove it. Esc when done."
+    : rmbgTool === "box" ? "Drag a box over what you want to erase. Esc when done."
+    : edits ? `${v.clicks.length} click${v.clicks.length === 1 ? "" : "s"}, ${v.boxes.length} box${v.boxes.length === 1 ? "" : "es"} applied` : "";
+  paintRanges();
+}
+let rmbgPending = 0;
+function applyRmbg(s){   // recompute from the original picture (kept until "Finish & trim")
+  cancelAnimationFrame(rmbgPending);
+  rmbgPending = requestAnimationFrame(() => { if (!s.rmbg || !s.srcImg) return;
+    s._rmbgCache = s._rmbgCache || {}; s.img = removeBackground(s.srcImg, s.rmbg, s._rmbgCache); s._tintKey = null; render(); });
+}
+onSel("#selRmbg", (s, el) => {
+  if (el.checked){
+    const src = s.srcImg || s.img, found = detectBackground(src);
+    if (found === "clear"){ el.checked = false; return toast("This image already has a see-through background"); }
+    if (!found){ el.checked = false; return toast("The background isn't one plain colour. For photos, use macOS: right-click the file → Quick Actions → Remove Background, then paste it here (⌘V)", true); }
+    s.srcImg = src; s.rmbg = {...rmbgCopy(RMBG_DEFAULT), color: found};
+    applyRmbg(s);
+  } else if (s.srcImg){ s.img = s.srcImg; s.srcImg = null; s.rmbg = null; s._tintKey = null; }
+  fillRmbg(s);
+});
+onSel("#selRmbgColor", (s, el) => { if (s.rmbg){ s.rmbg.color = el.value; applyRmbg(s); } });
+onSel("#selRmbgTol", (s, el) => { if (s.rmbg){ s.rmbg.tolerance = +el.value; applyRmbg(s); } });
+onSel("#selRmbgSoft", (s, el) => { if (s.rmbg){ s.rmbg.soft = +el.value; applyRmbg(s); } });
+for (const b of document.querySelectorAll("#selRmbgInsideSeg button")) b.onclick = () => {
+  const s = st.sel; if (!s?.rmbg) return; pushHistory(); s.rmbg.inside = b.dataset.inside; fillRmbg(s); applyRmbg(s); };
+/* touch-up tools on the canvas: click to remove an area, or drag a box to erase */
+let rmbgTool = null, rmbgDrag = null;
+function setRmbgTool(t){
+  rmbgTool = t; document.body.classList.toggle("rmbgtool", !!t);
+  $("#rmbgWand").classList.toggle("on", t === "wand"); $("#rmbgBoxTool").classList.toggle("on", t === "box");
+  if (!t) rmbgDrag = null;
+}
+$("#rmbgWand").onclick = () => { setRmbgTool(rmbgTool === "wand" ? null : "wand"); if (st.sel) fillRmbg(st.sel); };
+$("#rmbgBoxTool").onclick = () => { setRmbgTool(rmbgTool === "box" ? null : "box"); if (st.sel) fillRmbg(st.sel); };
+$("#rmbgClearEdits").onclick = () => { const s = st.sel; if (!s?.rmbg) return; pushHistory(); s.rmbg.clicks = []; s.rmbg.boxes = []; fillRmbg(s); applyRmbg(s); };
+/* a point on the canvas → position on the sticker's own picture (0–1), on whichever copy was hit */
+function stickerUV(s, px, py){
+  const [w, h] = stickerSize(s);
+  for (const pos of instances(s)){
+    let [lx, ly] = toLocal(s, px, py, pos); if (s.flip) lx = -lx;
+    if (Math.abs(lx) <= w/2 && Math.abs(ly) <= h/2) return {u: lx / w + 0.5, v: ly / h + 0.5, pos};
+  }
+  return null;
+}
+stage.addEventListener("pointerdown", e => {
+  if (!rmbgTool) return;
+  const s = st.sel; if (!s?.rmbg){ setRmbgTool(null); return; }
+  const [px, py] = canvasPoint(e), hit = stickerUV(s, px, py);
+  e.preventDefault(); e.stopPropagation();
+  if (!hit) return toast("Click on the selected sticker");
+  if (rmbgTool === "wand"){ pushHistory(); s.rmbg.clicks.push({x: hit.u, y: hit.v}); fillRmbg(s); applyRmbg(s); }
+  else { rmbgDrag = {s, pos: hit.pos, u0: hit.u, v0: hit.v, u1: hit.u, v1: hit.v}; }
+}, true);
+window.addEventListener("pointermove", e => {
+  if (!rmbgDrag) return;
+  const s = rmbgDrag.s, [w, h] = stickerSize(s), [px, py] = canvasPoint(e);
+  let [lx, ly] = toLocal(s, px, py, rmbgDrag.pos); if (s.flip) lx = -lx;
+  rmbgDrag.u1 = Math.max(0, Math.min(1, lx / w + 0.5)); rmbgDrag.v1 = Math.max(0, Math.min(1, ly / h + 0.5)); render();
+});
+window.addEventListener("pointerup", () => {
+  if (!rmbgDrag) return;
+  const r = rmbgDrag, s = r.s; rmbgDrag = null;
+  if (Math.abs(r.u1 - r.u0) > 0.003 && Math.abs(r.v1 - r.v0) > 0.003){ pushHistory(); s.rmbg.boxes.push({x0: r.u0, y0: r.v0, x1: r.u1, y1: r.v1}); fillRmbg(s); applyRmbg(s); }
+  render();
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && rmbgTool){ setRmbgTool(null); if (st.sel) fillRmbg(st.sel); } });
+function drawRmbgDrag(x){   // the box being dragged, drawn on the sticker
+  const r = rmbgDrag, s = r.s, [w, h] = stickerSize(s), kk = k();
+  x.save(); x.translate(r.pos[0]*W(), r.pos[1]*H()); x.rotate(s.rot*Math.PI/180); if (s.flip) x.scale(-1, 1);
+  const X0 = (Math.min(r.u0, r.u1) - 0.5)*w, Y0 = (Math.min(r.v0, r.v1) - 0.5)*h, BW = Math.abs(r.u1 - r.u0)*w, BH = Math.abs(r.v1 - r.v0)*h;
+  x.fillStyle = "rgba(255, 90, 110, 0.25)"; x.fillRect(X0, Y0, BW, BH);
+  x.lineWidth = 2*kk; x.strokeStyle = "#ff5a6e"; x.setLineDash([6*kk, 4*kk]); x.strokeRect(X0, Y0, BW, BH); x.restore();
+}
+$("#selRmbgDone").onclick = () => { const s = st.sel; if (!s?.rmbg) return;
+  pushHistory();   // ⌘Z goes back to the adjustable result
+  s.img = removeBackground(s.srcImg, s.rmbg, s._rmbgCache); s.srcImg = null; s.rmbg = null; s._rmbgCache = null; s._tintKey = null;
+  trimSticker(s); fillRmbg(s); render(); };
+/* tint */
+const TINT_DEFAULT = {color: "#ff4f8b", strength: 70, mode: "color"};
+let lastTint = null;
+function fillTint(t){
+  $("#selTint").checked = !!t; $("#selTintOpts").hidden = !t;
+  const v = t || lastTint || TINT_DEFAULT;
+  $("#selTintColor").value = parseColor(v.color) || "#ff4f8b"; $("#selTintStrength").value = v.strength;
+  for (const b of document.querySelectorAll("#selTintMode button")) b.classList.toggle("on", b.dataset.mode === v.mode);
+  paintRanges();
+}
+onSel("#selTint", (s, el) => { if (el.checked) s.tint = {...(lastTint || TINT_DEFAULT)}; else { lastTint = s.tint; s.tint = null; } fillTint(s.tint); });
+onSel("#selTintColor", (s, el) => { if (s.tint) s.tint.color = el.value; });
+onSel("#selTintStrength", (s, el) => { if (s.tint) s.tint.strength = +el.value; });
+for (const b of document.querySelectorAll("#selTintMode button")) b.onclick = () => {
+  const s = st.sel; if (!s?.tint) return; pushHistory(); s.tint.mode = b.dataset.mode; fillTint(s.tint); render(); };
+onSel("#selShadow", (s, el) => { if (el.checked) s.shadow = {...(lastShadow.sel || SHADOW_DEFAULT)}; else { lastShadow.sel = s.shadow; s.shadow = null; } fillShadow("sel", s.shadow); });
+onSel("#selShColor", (s, el) => { if (s.shadow) s.shadow.color = el.value; });
+for (const [id, k] of Object.entries(SH_KEYS)) onSel("#sel" + id, (s, el) => { if (s.shadow) s.shadow[k] = +el.value; });
+$("#capShadow").addEventListener("input", e => {
+  if (e.target.checked) st.g.text_shadow = {...(lastShadow.cap || SHADOW_DEFAULT)}; else { lastShadow.cap = st.g.text_shadow; st.g.text_shadow = null; }
+  fillShadow("cap", st.g.text_shadow); buildFrame(); render();
+});
+// (wired directly: this runs before frameInput exists)
+$("#capShColor").addEventListener("input", e => { if (st.g.text_shadow){ st.g.text_shadow.color = e.target.value; buildFrame(); render(); } });
+for (const [id, k] of Object.entries(SH_KEYS)) $("#cap" + id).addEventListener("input", e => { if (st.g.text_shadow){ st.g.text_shadow[k] = +e.target.value; buildFrame(); render(); } });
 onSel("#selText", (s, el) => updateText(s, {text: el.value}));
 onSel("#selFont", (s, el) => { updateText(s, {font: el.value}); checkFont(el.value); });
 onSel("#selColor", (s, el) => updateText(s, {color: el.value}));
@@ -876,19 +2106,27 @@ const selAction = (id, fn) => $(id).onclick = () => { if (!st.sel) return; pushH
 selAction("#selFlip", s => s.flip = !s.flip);
 selAction("#selReset", s => s.rot = 0);
 $("#selTrim").onclick = () => st.sel && trimSticker(st.sel);
-selAction("#selCenterX", s => s.x = st.g.cut === "vertical" ? (s.x < 0.5 ? 0.25 : 0.75) : 0.5);
-selAction("#selCenterY", s => s.y = st.g.cut === "horizontal" ? (s.y < 0.5 ? 0.25 : 0.75) : 0.5);
+const printMid = (half, axis) => { const p = stripAreas(st.g)[half].print; return axis === "x" ? (p.x + p.w/2) / W() : (p.y + p.h/2) / H(); };
+selAction("#selCenterX", s => s.x = st.g.cut === "vertical" ? printMid(s.x < 0.5 ? 0 : 1, "x") : 0.5);
+selAction("#selCenterY", s => s.y = st.g.cut === "horizontal" ? printMid(s.y < 0.5 ? 0 : 1, "y") : 0.5);
 selAction("#selBand", s => { const [bx, by] = bandCenter(halfOf(s)); s.x = bx/W(); s.y = by/H(); });
 selAction("#selFront", s => { st.stickers = st.stickers.filter(x => x !== s); st.stickers.push(s); });
 selAction("#selBack", s => { st.stickers = st.stickers.filter(x => x !== s); st.stickers.unshift(s); });
-$("#selDup").onclick = () => { const s = st.sel; if (!s) return; addSticker({...s, id:++uid, x:s.x + .03, y:s.y + .03}); };
+$("#selDup").onclick = () => { const s = st.sel; if (!s) return;
+  addSticker({...s, id:++uid, x:s.x + .03, y:s.y + .03, shadow: s.shadow ? {...s.shadow} : null, tint: s.tint ? {...s.tint} : null, rmbg: rmbgCopy(s.rmbg), _tintKey: null, _tintCanvas: null}); };
 $("#selDel").onclick = deleteSel;
 
 window.addEventListener("keydown", e => {
   const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && document.activeElement.type !== "range";
   const mod = e.metaKey || e.ctrlKey;
   if (mod && e.key.toLowerCase() === "s"){ e.preventDefault(); return e.shiftKey ? saveToFolder() : download(); }
+  if (mod && (e.key === "=" || e.key === "+")){ e.preventDefault(); return setZoom(zoom * 1.25); }
+  if (mod && (e.key === "-" || e.key === "_")){ e.preventDefault(); return setZoom(zoom / 1.25); }
+  if (mod && e.key === "0"){ e.preventDefault(); return setZoom(1); }
   if (typing) return;
+  if (mod && e.key === ";"){ e.preventDefault(); return toggleGuides(); }
+  if (!mod && !e.altKey && e.key.toLowerCase() === "g"){ e.preventDefault(); return toggleGuides(); }
+  if (e.code === "Space"){ e.preventDefault(); if (!spaceDown){ spaceDown = true; stage.classList.add("panning"); } return; }
   if (mod && e.key.toLowerCase() === "z"){ e.preventDefault(); return undo(); }
   if (mod && e.key.toLowerCase() === "d"){ e.preventDefault(); return $("#selDup").click(); }
   if (e.key === "Escape") return select(null);
@@ -899,11 +2137,21 @@ window.addEventListener("keydown", e => {
 });
 
 /* ---------- grid & frame controls ---------- */
-const NUM = ["rows", "cols", "width", "height", "margin", "gap", "header", "footer", "bleed", "cut_gap"];
+const NUM = ["rows", "cols", "width", "height", "margin", "gap", "header", "footer", "bleed", "cut_gap", "radius", "film_band"];
+const GRID_KEYS = ["rows", "cols", "width", "height", "margin", "gap", "header", "footer"];   // editing these leaves exact slots
+function dropExactSlots(){
+  if (!st.g.slots) return;
+  delete st.g.slots; $("#slotsNote").hidden = true; toast("Switched to an even grid");
+}
 function syncGridInputs(){
   const g = st.g; for (const id of NUM) $("#" + id).value = g[id];
   $("#cut").value = isCut() ? g.cut : "none"; $("#cutOpts").hidden = !isCut();
   $("#same_photos").checked = !!g.same_photos; $("#bg_per_half").checked = !!g.bg_per_half;
+  syncFilmWidth();
+  $("#film").checked = !!g.film; $("#toolbar [data-tool=film]").classList.toggle("is-on", !!g.film); $("#filmOpts").hidden = !g.film; const clear = g.film_holes === "transparent";
+  $("#film_clear").checked = clear; $("#film_holes").disabled = clear;
+  if (!clear && /^#[0-9a-f]{6}$/i.test(g.film_holes)) $("#film_holes").value = g.film_holes;
+  $("#slotsNote").hidden = !g.slots?.length; syncPattern(); syncGradient(); syncTexture(); fillShadow("cap", g.text_shadow); refreshSections();
   const ends = g.cut === "horizontal" ? ["Left space", "Right space"] : ["Top space", "Bottom space"];
   $("#header").previousSibling.textContent = ends[0] + " "; $("#footer").previousSibling.textContent = ends[1] + " ";
   $("#psdInfo").hidden = !st.psd;
@@ -912,13 +2160,122 @@ function syncGridInputs(){
   $("#text").value = g.text; setFontSelect($("#text_font"), g.text_font || "Arial Bold Italic");
   $("#text_color").value = g.text_color.length === 7 ? g.text_color : "#ffffff"; $("#text_size").value = g.text_size;
 }
-function applyPreset(name){
-  const p = CONFIG.grids.find(g => g.name === name);
-  st.g = {...BASE, ...CONFIG.defaults, ...(p || {name:"custom", rows:3, cols:2})};
-  st.psd = null;
+/* Design settings the user changed are carried over to the next template; layout settings (slots, size, cut) are not.
+   "Changed" = different from how the current template was saved (presetBase). */
+const STYLE_KEYS = ["background", "background_image", "slot", "text", "text_color", "text_size", "text_font",
+                    "radius", "film", "film_band", "film_holes", "pattern", "text_shadow", "texture", "bg_gradient", "bg_opacity", "bg_fit", "bg_rotate", "bg_zoom", "bg_x", "bg_y"];
+let presetBase = null;
+const clone = v => v === undefined ? undefined : JSON.parse(JSON.stringify(v));
+function editedStyle(){
+  const out = {};
+  if (st.g && presetBase) for (const k of STYLE_KEYS)
+    if (JSON.stringify(st.g[k]) !== JSON.stringify(presetBase[k])) out[k] = st.g[k] === undefined ? null : clone(st.g[k]);
+  return out;
+}
+function withEdits(base, edits){
+  const g = {...clone(base), ...edits};
+  for (const [k, v] of Object.entries(edits)) if (v === null) delete g[k];   // e.g. a pattern the user removed
+  return g;
+}
+function applyPreset(name, {keep = true} = {}){
+  const p = CONFIG.grids.find(g => g.name === name), edits = keep ? editedStyle() : {};
+  presetBase = clone({...BASE, ...CONFIG.defaults, ...(p || {name:"custom", rows:3, cols:2})});
+  st.g = withEdits(presetBase, edits);
+  st.psd = null; zoom = 1; $("#zoomPct").textContent = "Fit";
   $("#preset").value = p ? name : "__custom";
   syncGridInputs(); setBackground(st.g.background_image); relayout();
 }
+$("#resetBtn").onclick = async () => {
+  if (!presetBase) return;
+  if (!(await BE.ask("Reset all your changes to this template?\nColours, background, pattern, film, caption and stickers go back to how the template was saved."))) return;
+  pushHistory(); st.stickers = []; select(null);
+  st.g = clone(presetBase); syncGridInputs(); await setBackground(st.g.background_image); relayout();
+  toast("Template reset (⌘Z brings the stickers back)");
+};
+/* ---------- layout picker with little previews ---------- */
+function drawThumb(c, g, max){
+  const full = {...BASE, ...CONFIG.defaults, ...g}, bs = computeBoxes(full), s = Math.min(max / full.width, max / full.height);
+  const dpr = window.devicePixelRatio || 1, w = Math.max(1, Math.round(full.width*s)), h = Math.max(1, Math.round(full.height*s));
+  c.width = w*dpr; c.height = h*dpr; c.style.width = w + "px"; c.style.height = h + "px";
+  const x = c.getContext("2d"); x.setTransform(dpr*s, 0, 0, dpr*s, 0, 0);
+  x.fillStyle = full.background; x.fillRect(0, 0, full.width, full.height);
+  const [r, gg, b] = [1, 3, 5].map(i => parseInt((full.background + "000000").slice(i, i+2), 16) / 255 || 0);
+  const light = 0.3*r + 0.59*gg + 0.11*b > 0.6;
+  x.fillStyle = light ? "#b8bdc9" : "#d9dce3";
+  for (const q of bs || []){ roundPath(x, q, full.radius || 0); x.fill(); }
+  if (full.film){ x.fillStyle = full.film_holes === "transparent" ? (light ? "#b8bdc9" : "#d9dce3") : full.film_holes;
+    for (const q of filmHoles(full)){ x.fillRect(q.x, q.y, q.w, q.h); } }
+  if (full.cut === "vertical" || full.cut === "horizontal"){
+    x.strokeStyle = "#94a3b8"; x.lineWidth = 1.2/s; x.setLineDash([4/s, 3/s]); x.beginPath();
+    if (full.cut === "vertical"){ x.moveTo(full.width/2, 0); x.lineTo(full.width/2, full.height); }
+    else { x.moveTo(0, full.height/2); x.lineTo(full.width, full.height/2); }
+    x.stroke();
+  }
+  x.strokeStyle = light ? "#00000033" : "#ffffff26"; x.lineWidth = 1/s; x.setLineDash([]); x.strokeRect(0, 0, full.width, full.height);
+}
+function layoutInfo(g){
+  const full = {...BASE, ...CONFIG.defaults, ...g}, cut = full.cut === "vertical" || full.cut === "horizontal";
+  const n = full.slots?.length || full.rows*full.cols*(cut ? 2 : 1);
+  return `${n} photo${n > 1 ? "s" : ""}${cut ? " · cut " + (full.cut === "vertical" ? "|" : "—") : ""}${full.width > full.height ? " · landscape" : ""}`;
+}
+function updateLayoutButton(){
+  if (!st.g) return;
+  drawThumb($("#layoutThumb"), st.g, 44);
+  $("#layoutName").textContent = st.g.name; $("#layoutInfo").textContent = layoutInfo(st.g);
+  const m = st.g.machine || "", pick = $("#machinePick");
+  const cut = st.g.cut === "vertical" ? "cut in half" : st.g.cut === "horizontal" ? "cut top / bottom" : "";
+  $("#plateName").textContent = st.g.name;
+  $("#plateInfo").textContent = [`${st.g.width} × ${st.g.height}`, cut, st.g.film ? "film on" : "", st.g.pattern?.items?.length ? "pattern" : ""].filter(Boolean).join(" · ");
+  if (pick.value !== m && [...pick.options].some(o => o.value === m)){ pick.value = m; renderGallery(); return; }   // follow the layout's machine
+  for (const t of document.querySelectorAll("#layoutGallery button[data-name]")) t.classList.toggle("on", t.dataset.name === st.g.name);
+}
+/* step 1: machine, step 2: one of that machine's templates */
+function fillMachines(){
+  const sel = $("#machinePick"), keep = sel.value;
+  const machines = [...new Set(CONFIG.grids.map(g => g.machine || ""))];
+  sel.innerHTML = ""; for (const m of machines) sel.add(new Option(m ? m : "Default", m));
+  sel.value = machines.includes(keep) ? keep : machines.includes(st.g?.machine || "") ? (st.g?.machine || "") : machines[0] ?? "";
+  syncMachineSeg();
+}
+function syncMachineSeg(){
+  const box = $("#machineSeg"), sel = $("#machinePick"); box.innerHTML = "";
+  for (const o of sel.options){
+    const b = document.createElement("button"); b.type = "button"; b.textContent = o.textContent; b.classList.toggle("on", o.value === sel.value);
+    b.onclick = () => { if (sel.value === o.value) return; sel.value = o.value; sel.dispatchEvent(new Event("change")); };
+    box.append(b);
+  }
+}
+$("#machinePick").addEventListener("change", syncMachineSeg);
+$("#machinePick").onchange = e => {
+  const m = e.target.value, first = CONFIG.grids.find(g => (g.machine || "") === m);
+  if (first && (st.g.machine || "") !== m) applyPreset(first.name);   // switch to that machine's first template
+  renderGallery();
+  $("#layoutGallery").hidden = false; $("#layoutBtn").setAttribute("aria-expanded", "true");   // show its templates right away
+};
+function renderGallery(){
+  const box = $("#layoutGallery"); box.innerHTML = "";
+  const m = $("#machinePick").value;
+  {
+    for (const g of CONFIG.grids.filter(g => (g.machine || "") === m)){
+      const b = document.createElement("button"), c = document.createElement("canvas");
+      b.dataset.name = g.name; b.title = `${g.name}: ${layoutInfo(g)}`; drawThumb(c, g, 64);
+      const name = document.createElement("span"); name.className = "name"; name.textContent = g.name;
+      const info = document.createElement("small"); info.textContent = layoutInfo(g);
+      b.append(c, name, info); b.onclick = () => { closeGallery(); applyPreset(g.name); };
+      box.append(b);
+    }
+  }
+  const add = document.createElement("button"); add.title = "Make a new template from a Photoshop or PNG file";
+  add.innerHTML = '<span class="plus">＋</span><span class="name">New from PSD / PNG</span>';
+  add.onclick = () => { closeGallery(); pickTemplateFile(); }; box.append(add);
+  updateLayoutButton();
+}
+function closeGallery(){ $("#layoutGallery").hidden = true; $("#layoutBtn").setAttribute("aria-expanded", "false"); }
+$("#layoutBtn").onclick = e => { e.stopPropagation(); const g = $("#layoutGallery"); g.hidden = !g.hidden;
+  $("#layoutBtn").setAttribute("aria-expanded", String(!g.hidden)); if (!g.hidden) g.querySelector("button.on")?.scrollIntoView?.({block: "nearest"}); };
+document.addEventListener("click", e => { if (!$("#layoutGallery").hidden && !e.target.closest("#layoutGallery, #layoutBtn, #machinePick")) closeGallery(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeGallery(); });
+
 function fillPresets(){
   const sel = $("#preset"); sel.innerHTML = "";
   const machines = [...new Set(CONFIG.grids.map(g => g.machine || ""))];
@@ -929,16 +2286,24 @@ function fillPresets(){
     sel.append(group);
   }
   sel.add(new Option("Custom…", "__custom"));
+  sel.add(new Option("＋ New from PSD / PNG…", "__import"));
+  fillMachines();
   $("#machineList").innerHTML = machines.filter(Boolean).map(m => `<option value="${m.replace(/"/g, "")}">`).join("");
+  renderGallery();
 }
-$("#preset").onchange = e => applyPreset(e.target.value);
+$("#preset").onchange = e => {
+  if (e.target.value === "__import"){   // keep showing the current layout; the import switches it if a file is picked
+    e.target.value = CONFIG.grids.some(g => g.name === st.g.name) ? st.g.name : "__custom"; return pickTemplateFile(); }
+  applyPreset(e.target.value);
+};
 for (const id of NUM) $("#" + id).addEventListener("input", e => {
   const v = parseInt(e.target.value, 10); if (Number.isNaN(v) || v < 0) return;
+  if (GRID_KEYS.includes(id)) dropExactSlots();
   st.g[id] = v; relayout();
 });
-$("#gname").addEventListener("input", e => { st.g.name = e.target.value.trim() || "custom"; updateStatus(); });
+$("#gname").addEventListener("input", e => { st.g.name = e.target.value.trim() || "custom"; updateStatus(); updateLayoutButton(); });
 $("#machine").addEventListener("input", e => { st.g.machine = e.target.value.trim(); updateStatus(); });
-$("#rotateBtn").onclick = () => { [st.g.width, st.g.height] = [st.g.height, st.g.width]; syncGridInputs(); relayout(); };
+$("#rotateBtn").onclick = () => { dropExactSlots(); [st.g.width, st.g.height] = [st.g.height, st.g.width]; syncGridInputs(); relayout(); };
 $("#cut").onchange = e => {
   st.g.cut = e.target.value; syncGridInputs(); relayout();
   if (isCut() && st.stickers.length && !st.stickers.some(s => s.both))
@@ -947,7 +2312,220 @@ $("#cut").onchange = e => {
 };
 $("#same_photos").onchange = e => { st.g.same_photos = e.target.checked; render(); };
 $("#bg_per_half").onchange = e => { st.g.bg_per_half = e.target.checked; buildFrame(); render(); };
-$("#showGuides").onchange = render;
+$("#showGuides").onchange = e => toggleGuides(e.target.checked);
+/* Simple / Advanced: Simple hides everything marked .adv (remembered on this computer) */
+/* In Advanced the left panel shows only the extra settings: everything not marked .adv is tagged .basic
+   (except the layout picker, marked .both), and sections left with nothing to show are hidden. */
+function markBasics(){
+  for (const sec of document.querySelectorAll("aside.left section")){
+    if (sec.matches(".adv")) continue;
+    const walk = el => { for (const c of el.children){
+      if (c.matches("h2, .adv, .both")) continue;
+      if (c.querySelector(".adv, .both")) walk(c); else c.classList.add("basic");
+    } };
+    walk(sec);
+  }
+}
+function refreshSections(){
+  const adv = document.body.classList.contains("advmode");
+  for (const sec of document.querySelectorAll("aside.left section")){
+    const shown = sec.matches(".adv") || [...sec.querySelectorAll(".adv, .both")].some(e => !e.closest("[hidden]"));
+    sec.classList.toggle("adv-empty", adv && !shown);
+  }
+  // a tool button only shows when its panel has something to show in this mode
+  for (const b of document.querySelectorAll("#toolbar [data-tool]")){
+    const secs = [...document.querySelectorAll(`aside.left section[data-tool="${b.dataset.tool}"]`)];
+    b.hidden = !secs.some(sec => !sec.classList.contains("adv-empty") && !(!adv && sec.matches(".adv")));
+  }
+  const cur = document.querySelector("#toolbar [data-tool].active");
+  if (!cur || cur.hidden) setTool(document.querySelector("#toolbar [data-tool]:not([hidden])")?.dataset.tool);
+}
+/* toolbar: show one tool's settings at a time in the left panel */
+const TOOL_INFO = {
+  layout: ["Layout", "Pick the machine, then a template. Your design carries over when you switch."],
+  background: ["Background", "Colour or image behind the photos, and how round the photo corners are."],
+  pattern: ["Pattern", "Scatter your PNGs behind the photos. Drag in stickers from the right, too."],
+  film: ["Film reel", "Sprocket holes down both edges of every strip, like real film."],
+  caption: ["Caption", "Text in the logo space. It repeats in both halves of a cut print."],
+  photos: ["Photos", "Drop test photos into the slots to see the finished print."],
+  print: ["Print & cut", "Cutting in half, bleed and the print guides."],
+};
+function setTool(t){
+  if (!t) return;
+  const [title, desc] = TOOL_INFO[t] || [t, ""]; $("#panelTitle").textContent = title; $("#panelDesc").textContent = desc;
+  for (const b of document.querySelectorAll("#toolbar [data-tool]")) b.classList.toggle("active", b.dataset.tool === t);
+  for (const sec of document.querySelectorAll("aside.left section[data-tool]")) sec.classList.toggle("active", sec.dataset.tool === t);
+  document.querySelector("aside.left").scrollTop = 0;
+  try { localStorage.setItem("tool", t); } catch {}
+}
+for (const b of document.querySelectorAll("#toolbar [data-tool]")) b.onclick = () => setTool(b.dataset.tool);
+{ let t = "layout"; try { t = localStorage.getItem("tool") || "layout"; } catch {} setTool(t); }
+markBasics();
+function setUiMode(m){
+  document.body.classList.toggle("simple", m !== "advanced");
+  document.body.classList.toggle("advmode", m === "advanced"); refreshSections();
+  for (const r of document.querySelectorAll("input[name=uimode]")) r.checked = r.value === (m === "advanced" ? "advanced" : "simple");
+  try { localStorage.setItem("uimode", m); } catch {}
+}
+for (const r of document.querySelectorAll("input[name=uimode]")) r.addEventListener("change", e => setUiMode(e.target.value));
+{ let m = "simple"; try { m = localStorage.getItem("uimode") || "simple"; } catch {} setUiMode(m); }
+
+/* ---------- layers: everything added or changed, with delete ----------
+   Stickers are removed; settings go back to how the template was saved. Top of the list = drawn on top. */
+const LSVG = {
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  eyeoff: '<path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.2M6.6 6.6C3.9 8.3 2 12 2 12s3.5 7 10 7c1.6 0 3-.4 4.3-1"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  type: '<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>',
+  film: '<rect width="18" height="18" x="3" y="3"/><path d="M7 3v18M3 7.5h4M3 12h18M3 16.5h4M17 3v18M17 7.5h4M17 16.5h4"/>',
+  sparkles: '<path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/>',
+  image: '<rect width="18" height="18" x="3" y="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
+  corners: '<path d="M4 10V7a3 3 0 0 1 3-3h3M14 4h3a3 3 0 0 1 3 3v3M20 14v3a3 3 0 0 1-3 3h-3M10 20H7a3 3 0 0 1-3-3v-3"/>',
+  photos: '<rect width="14" height="14" x="3" y="7"/><path d="M7 3h14v14"/>',
+};
+const lsvg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${LSVG[k]}</svg>`;
+function layerRows(){
+  const g = st.g, base = presetBase || {}, rows = [];
+  for (const s of [...st.stickers].reverse())
+    rows.push({key: "s" + s.id, sticker: s, name: s.kind === "text" ? (s.text || "Text") : (s.label || "Sticker"),
+      meta: [s.kind === "text" ? "Text" : "Sticker", s.rmbg ? "background removed" : "", s.tint ? "tinted" : "", s.shadow ? "shadow" : "", isCut() && s.both ? "both halves" : "", s.hidden ? "hidden" : ""].filter(Boolean).join(" · ")});
+  if (g.text) rows.push({key: "caption", icon: "type", name: "Caption", meta: `“${g.text}”` + (g.text_shadow ? " · shadow" : ""), tool: "caption", del: () => { g.text = ""; syncGridInputs(); buildFrame(); render(); }});
+  if (g.film) rows.push({key: "film", icon: "film", name: "Film edges", meta: filmBand(g) + "px edge", tool: "film", del: () => setFilm(false)});
+  if (g.pattern?.items?.length) rows.push({key: "pattern", icon: "sparkles", name: "Pattern", meta: `${g.pattern.items.length} image${g.pattern.items.length > 1 ? "s" : ""} · ${g.pattern.opacity}%`, tool: "pattern", del: () => { delete g.pattern; patternChanged(); }});
+  if (g.background_image){
+    const extra = [{cover: "", stretch: "stretched", contain: "fit"}[g.bg_fit || "cover"], g.bg_rotate ? g.bg_rotate + "°" : "", (g.bg_zoom ?? 100) !== 100 ? g.bg_zoom + "% zoom" : ""].filter(Boolean);
+    rows.push({key: "bgimg", icon: "image", name: "Background image", meta: [g.background_image.split("/").pop(), (g.bg_opacity ?? 100) + "%", ...extra].join(" · "), tool: "background",
+      del: () => { Object.assign(g, BG_DEFAULTS); setBackground(""); }});
+  }
+  if ((g.radius || 0) !== (base.radius || 0)) rows.push({key: "radius", icon: "corners", name: "Rounded corners", meta: (g.radius || 0) + "px", tool: "background", del: () => { g.radius = base.radius || 0; syncGridInputs(); relayout(); }});
+  const n = st.photos.filter(Boolean).length;
+  if (n) rows.push({key: "photos", icon: "photos", name: "Test photos", meta: `${n} photo${n > 1 ? "s" : ""}`, tool: "photos", del: () => { st.photos = []; render(); }});
+  if (g.texture?.type) rows.push({key: "texture", icon: "corners", name: "Paper texture",
+    meta: `${(TEXTURES.find(t => t[0] === g.texture.type) || [, g.texture.type])[1]} · ${g.texture.strength ?? 60}%`, tool: "background",
+    del: () => { g.texture = null; syncTexture(); buildFrame(); render(); }});
+  if (g.bg_gradient){ const gr = g.bg_gradient;
+    rows.push({key: "grad", swatch: `linear-gradient(135deg, ${gr.colors.join(", ")})`, name: "Background gradient",
+      meta: `${{corners: "4 corners", linear: "linear", radial: "radial"}[gr.type]} · ${gr.colors.length} colours`, tool: "background",
+      del: () => { lastGradient = gradCopy(gr); g.bg_gradient = null; syncGradient(); buildFrame(); render(); }}); }
+  const bgEdited = base.background !== undefined && g.background.toLowerCase() !== String(base.background).toLowerCase();
+  rows.push({key: "bgcol", swatch: g.background, name: "Background colour", meta: g.background.toUpperCase() + (bgEdited ? "" : " · template"), tool: "background",
+    del: bgEdited ? () => { g.background = base.background; syncGridInputs(); buildFrame(); render(); } : null});
+  return rows;
+}
+let layerSig = "";
+function renderLayers(){
+  if (!st.g) return;
+  const rows = layerRows();
+  const sig = JSON.stringify(rows.map(r => [r.key, r.name, r.meta, r.swatch, r.sticker?.hidden, r.sticker === st.sel, r.sticker?.tint && JSON.stringify(r.sticker.tint)]));
+  if (sig === layerSig) return; layerSig = sig;
+  const box = $("#layerList"); box.innerHTML = "";
+  for (const r of rows){
+    const row = document.createElement("div"); row.className = "layer" + (r.sticker && r.sticker === st.sel ? " sel" : "") + (r.sticker?.hidden ? " off" : "");
+    row.title = r.sticker ? "Click to select" : "Click to open its settings";
+    const ic = document.createElement("span"); ic.className = "lic";
+    if (r.sticker){ const c = document.createElement("canvas"), [iw, ih] = dims(r.sticker.img), k = 22 / Math.max(iw, ih);
+      c.width = Math.max(1, Math.round(iw*k)); c.height = Math.max(1, Math.round(ih*k)); c.getContext("2d").drawImage(tintedImage(r.sticker), 0, 0, c.width, c.height); ic.append(c); }
+    else if (r.swatch) ic.style.background = r.swatch;
+    else ic.innerHTML = lsvg(r.icon);
+    const nm = document.createElement("span"); nm.className = "lname"; nm.innerHTML = "<b></b><small></small>";
+    nm.querySelector("b").textContent = r.name; nm.querySelector("small").textContent = r.meta;
+    row.append(ic, nm);
+    if (r.sticker){
+      const eye = document.createElement("button"); eye.className = "lbtn"; eye.title = r.sticker.hidden ? "Show" : "Hide (not exported while hidden)";
+      eye.innerHTML = lsvg(r.sticker.hidden ? "eyeoff" : "eye");
+      eye.onclick = e => { e.stopPropagation(); pushHistory(); r.sticker.hidden = !r.sticker.hidden; if (r.sticker.hidden && st.sel === r.sticker) select(null); render(); };
+      row.append(eye);
+    }
+    const del = document.createElement("button"); del.className = "lbtn del"; del.innerHTML = lsvg("x");
+    del.title = r.sticker ? "Delete this sticker" : r.key === "bgcol" ? "Back to the template's colour" : "Remove this change";
+    del.disabled = !r.sticker && !r.del;
+    del.onclick = e => { e.stopPropagation();
+      if (r.sticker){ pushHistory(); st.stickers = st.stickers.filter(x => x !== r.sticker); if (st.sel === r.sticker) select(null); else render(); toast(`Deleted “${r.name}” (⌘Z to undo)`); }
+      else { r.del(); toast(`Removed: ${r.name}`); render(); } };
+    row.append(del);
+    row.onclick = () => { if (r.sticker){ if (r.sticker.hidden) return; select(r.sticker); } else setTool(r.tool); };
+    box.append(row);
+  }
+}
+
+/* ---------- print preview: one strip exactly as it comes out of the printer ----------
+   The page is drawn as for export, then cropped to the printed area: inside the outer guides on every side,
+   and (for cut prints) only the first half, up to the cut line. */
+function printCrop(g){
+  const b = g.bleed || 0, W = g.width, H = g.height;
+  if (g.cut === "vertical") return {x: b, y: b, w: W/2 - b, h: H - 2*b};
+  if (g.cut === "horizontal") return {x: b, y: b, w: W - 2*b, h: H/2 - b};
+  return {x: b, y: b, w: W - 2*b, h: H - 2*b};
+}
+function renderPrintPreview(){
+  const g = st.g; if (!g) return;
+  const withPhotos = document.querySelector('input[name=pvmode]:checked').value === "photos";
+  const full = document.createElement("canvas"); full.width = W(); full.height = H();
+  const fx = full.getContext("2d");
+  paint(fx, {photos: withPhotos, emptyFill: withPhotos ? "#d9d9de" : null});
+  fx.save(); fx.globalCompositeOperation = "destination-over"; fx.fillStyle = "#ffffff"; fx.fillRect(0, 0, W(), H()); fx.restore();   // white paper behind
+  const R = printCrop(g), cv2 = $("#pvCanvas");
+  const maxH = window.innerHeight * 0.94 - 140, maxW = window.innerWidth * 0.96 - 80, k = Math.min(maxH / R.h, maxW / R.w, 1);
+  const dpr = window.devicePixelRatio || 1;
+  cv2.width = Math.round(R.w * k * dpr); cv2.height = Math.round(R.h * k * dpr);
+  cv2.style.width = Math.round(R.w * k) + "px"; cv2.style.height = Math.round(R.h * k) + "px";
+  const x = cv2.getContext("2d"); x.clearRect(0, 0, cv2.width, cv2.height); x.imageSmoothingQuality = "high";
+  x.drawImage(full, R.x, R.y, R.w, R.h, 0, 0, cv2.width, cv2.height);
+  const inch = v => (v / 300).toFixed(2).replace(/\.?0+$/, "");
+  $("#pvInfo").textContent = `${isCut() ? "One strip, " : ""}inside the guides: ${Math.round(R.w)} × ${Math.round(R.h)} px · ${inch(R.w)} × ${inch(R.h)} in at 300 dpi`;
+}
+function openPrintPreview(){ $("#printPreview").hidden = false; renderPrintPreview(); }
+function closePrintPreview(){ $("#printPreview").hidden = true; }
+$("#previewBtn").onclick = openPrintPreview;
+$("#pvClose").onclick = closePrintPreview;
+$("#printPreview").addEventListener("pointerdown", e => { if (e.target.id === "printPreview") closePrintPreview(); });
+for (const r of document.querySelectorAll("input[name=pvmode]")) r.addEventListener("change", renderPrintPreview);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !$("#printPreview").hidden){ closePrintPreview(); return; }
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && document.activeElement.type !== "range";
+  if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "p"){ e.preventDefault(); $("#printPreview").hidden ? openPrintPreview() : closePrintPreview(); }
+});
+
+/* slider fill (CSS --p) and the little value pills */
+const RANGE_VALS = {selRmbgTol: v => v, selRmbgSoft: v => v + "px", selTintStrength: v => v + "%", selOpacity: v => v + "%", selShAngle: v => v + "°", selShDist: v => v + "px", selShBlur: v => v + "px", selShOpacity: v => v + "%",
+  capShAngle: v => v + "°", capShDist: v => v + "px", capShBlur: v => v + "px", capShOpacity: v => v + "%", tex_strength: v => v + "%", grad_angle: v => v + "°", bg_opacity: v => v + "%", bg_rotate: v => v + "°", bg_zoom: v => v + "%", bg_x: v => (v > 0 ? "+" : "") + v + "%", bg_y: v => (v > 0 ? "+" : "") + v + "%", radiusRange: v => v + "px", text_size: v => v + "px", selSize: v => v + "%", selRot: v => v + "°"};
+function paintRanges(){
+  for (const r of document.querySelectorAll('input[type="range"]:not(.cp-hue)')){
+    const p = (r.value - r.min) / ((r.max - r.min) || 1) * 100; r.style.setProperty("--p", p + "%");
+    const f = RANGE_VALS[r.id]; if (f){ const v = document.getElementById("v_" + r.id); if (v) v.textContent = f(r.value); }
+  }
+}
+document.addEventListener("input", e => { if (e.target.type === "range") paintRanges(); });
+setInterval(paintRanges, 300);
+
+/* film on/off for any layout */
+function syncFilmWidth(){
+  const g = st.g, room = filmRoom(g), wide = filmCanWiden(g), band = filmBand(g), sl = $("#film_band");
+  sl.max = wide ? Math.max(250, room) : Math.max(20, room); sl.value = band;
+  $("#v_film_band").textContent = band + "px";
+  const note = $("#filmNote"), n = filmAcross(g), what = "l" in stripSides(g, 0) ? "columns" : "rows";
+  note.hidden = !g.film;
+  const side = "l" in stripSides(g, 0), less = side ? "narrower" : "shorter", keeps = side ? "height and up-down position" : "width and left-right position";
+  note.textContent = wide
+    ? (band <= room ? `Photos stay exactly where they are up to ${room}px. Wider makes them ${less} (same ${keeps}).`
+                    : `Photos are ${band - room}px ${less} on each film side; their ${keeps} stay the same.`)
+    : g.slots?.length ? `Imported template: the film edge stays in the ${room}px free space, so the photo slots never move.`
+    : `${n} ${what} of photos: the film edge stays in the ${room}px free space, so photos never move.`;
+}
+function setFilm(on){
+  const g = st.g;
+  if (on && !g.film){
+    g.film_band = Math.max(20, filmRoom(g));   // start with the free space: photos don't move
+    const [r, gg, b] = [1, 3, 5].map(i => parseInt(g.background.slice(i, i+2), 16) / 255);
+    if (!st.bgImg && 0.3*r + 0.59*gg + 0.11*b > 0.6 && g.film_holes.toUpperCase() === "#FFFFFF") g.film_holes = "#111111";   // keep holes visible on a light page
+    toast(filmCanWiden(g) ? "Film on: photos stay put. Drag “Film width” to make the film wider"
+                          : "Film on: photos stay put (the film fits in the free space beside them)");
+  }
+  g.film = on; syncGridInputs(); relayout();
+}
+$("#film").onchange = e => setFilm(e.target.checked);
+$("#film_band").addEventListener("input", () => syncFilmWidth());
+
 $("#psdInfo").addEventListener("click", e => { if (e.target.id === "psdClear"){ e.preventDefault(); st.psd = null; syncGridInputs(); render(); } });
 
 /* ---------- reading guides from a Photoshop file ----------
@@ -972,42 +2550,305 @@ function parsePsd(buf){
   }
   return {w, h, guides};
 }
-async function loadPsd(file){
-  try {
-    const info = parsePsd(await file.slice(0, 32 * 1024 * 1024).arrayBuffer());
-    if (!info.guides.length) return toast(`${file.name} has no guides`, true);
-    const g = st.g, vs = info.guides.filter(q => q.dir === "v").map(q => q.pos), hs = info.guides.filter(q => q.dir === "h").map(q => q.pos);
-    g.width = info.w; g.height = info.h;
-    const edge = [...vs.filter(a => a > 1 && a < info.w*0.1), ...hs.filter(a => a > 1 && a < info.h*0.1)];   // ignore guides on the edge itself
-    if (edge.length) g.bleed = Math.round(Math.min(...edge));
-    // a guide on the centre line with equal guides either side = cut line + its gap.
-    // Take the widest matching pair (inner pairs are photo-border lines, e.g. G14's 905/1015).
-    const cutGap = (arr, mid) => {
-      if (!arr.some(a => Math.abs(a - mid) <= 3)) return null;
-      const lo = arr.filter(a => a < mid - 3 && a > mid*0.8), hi = arr.filter(a => a > mid + 3 && a < mid*1.2);
-      const gaps = lo.flatMap(l => hi.filter(r => Math.abs((mid - l) - (r - mid)) <= 3).map(r => Math.round(r - l)));
-      return gaps.length ? Math.max(...gaps) : null;
-    };
-    const gv = cutGap(vs, info.w/2), gh = cutGap(hs, info.h/2);
-    if (gv){ g.cut = "vertical"; g.cut_gap = gv; } else if (gh){ g.cut = "horizontal"; g.cut_gap = gh; } else g.cut = "none";
-    // strips: photos stack along the strip (one column for left|right, one row for top/bottom)
-    if (g.cut === "vertical" && g.cols > 1){ g.rows = Math.min(Math.max(g.rows, g.cols), 4); g.cols = 1; }
-    if (g.cut === "horizontal" && g.rows > 1){ g.cols = Math.min(Math.max(g.rows, g.cols), 4); g.rows = 1; }
-    st.psd = {name: file.name, ...info};
-    syncGridInputs(); relayout(); syncSel();
-    const cutText = g.cut === "vertical" ? `cut left | right, ${g.cut_gap}px gap` : g.cut === "horizontal" ? `cut top / bottom, ${g.cut_gap}px gap` : "no cut line";
-    toast(`${file.name}: ${info.w}×${info.h}, bleed ${g.bleed}px, ${cutText}`);
-  } catch (err) { toast(`Couldn't read ${file.name}: ${err.message}`, true); }
+/* bleed and cut line from a PSD's guides */
+function applyGuides(g, info){
+  const vs = info.guides.filter(q => q.dir === "v").map(q => q.pos), hs = info.guides.filter(q => q.dir === "h").map(q => q.pos);
+  const edge = [...vs.filter(a => a > 1 && a < info.w*0.1), ...hs.filter(a => a > 1 && a < info.h*0.1)];   // ignore guides on the edge itself
+  if (edge.length) g.bleed = Math.round(Math.min(...edge));
+  // a guide on the centre line with equal guides either side = cut line + its gap.
+  // Take the widest matching pair (inner pairs are photo-border lines, e.g. G14's 905/1015).
+  const cutGap = (arr, mid) => {
+    if (!arr.some(a => Math.abs(a - mid) <= 3)) return null;
+    const lo = arr.filter(a => a < mid - 3 && a > mid*0.8), hi = arr.filter(a => a > mid + 3 && a < mid*1.2);
+    const gaps = lo.flatMap(l => hi.filter(r => Math.abs((mid - l) - (r - mid)) <= 3).map(r => Math.round(r - l)));
+    return gaps.length ? Math.max(...gaps) : null;
+  };
+  const gv = cutGap(vs, info.w/2), gh = cutGap(hs, info.h/2);
+  if (gv){ g.cut = "vertical"; g.cut_gap = gv; } else if (gh){ g.cut = "horizontal"; g.cut_gap = gh; } else g.cut = "none";
 }
-$("#psdDrop").addEventListener("dragover", e => { e.preventDefault(); e.stopPropagation(); $("#psdDrop").classList.add("over"); });
-$("#psdDrop").addEventListener("dragleave", () => $("#psdDrop").classList.remove("over"));
-$("#psdDrop").addEventListener("drop", e => { e.preventDefault(); e.stopPropagation(); $("#psdDrop").classList.remove("over");
-  const f = [...e.dataTransfer.files].find(isPsd); f ? loadPsd(f) : toast("That isn't a .psd file", true); });
-$("#psdDrop").addEventListener("click", () => { const p = $("#psdPicker"); p.value = "";
-  p.onchange = () => p.files[0] && loadPsd(p.files[0]); p.click(); });
+
+/* ---------- importing a template (PSD or PNG) ----------
+   The photo slots are found in the flattened picture: see-through areas, or (when the file has no
+   transparency) large flat-coloured rectangles such as the grey placeholders in Photoshop templates. */
+async function psdPixels(file){
+  const bytes = async (p, n) => new DataView(await file.slice(p, p + n).arrayBuffer());
+  const head = await bytes(0, 26);
+  if (head.getUint32(0) !== 0x38425053) throw new Error("not a Photoshop file");
+  if (head.getUint16(4) !== 1) throw new Error("large-document (.psb) files aren't supported");
+  const chans = head.getUint16(12), h = head.getUint32(14), w = head.getUint32(18);
+  if (head.getUint16(22) !== 8 || head.getUint16(24) !== 3) throw new Error("only 8-bit RGB files are supported");
+  let p = 26; p += 4 + (await bytes(p, 4)).getUint32(0);   // colour-mode data
+  p += 4 + (await bytes(p, 4)).getUint32(0);               // image resources
+  const layerLen = (await bytes(p, 4)).getUint32(0);
+  // a negative layer count means the 4th channel of the flattened picture is its transparency
+  const lv = layerLen >= 6 ? await bytes(p + 4, 6) : null;
+  const hasAlpha = !!lv && lv.getUint32(0) > 0 && lv.getInt16(4) < 0 && chans >= 4;
+  p += 4 + layerLen;
+  const d = new Uint8Array(await file.slice(p).arrayBuffer()), comp = (d[0] << 8) | d[1], n = hasAlpha ? 4 : 3;
+  const px = new Uint8ClampedArray(w*h*4).fill(255);
+  let q = 2;
+  if (comp === 0){
+    for (let c = 0; c < n; c++) for (let i = 0; i < w*h; i++) px[i*4 + c] = d[q + c*w*h + i];
+  } else if (comp === 1){   // PackBits, one run-length table entry per row of every channel
+    const table = q; q += chans*h*2;
+    for (let c = 0; c < n; c++) for (let y = 0; y < h; y++){
+      const t = table + (c*h + y)*2, end = q + ((d[t] << 8) | d[t+1]);
+      let i = y*w; const stop = i + w;
+      while (q < end && i < stop){
+        const b = d[q++];
+        if (b < 128) for (let k = 0; k <= b && i < stop; k++) px[(i++)*4 + c] = d[q++];
+        else if (b > 128){ const v = d[q++]; for (let k = 0; k < 257 - b && i < stop; k++) px[(i++)*4 + c] = v; }
+      }
+      q = end;
+    }
+  } else throw new Error("its picture uses a compression that isn't supported (try the PNG instead)");
+  return {px, w, h};
+}
+function findSlots(px, w, h){
+  const S = 4, sw = Math.floor(w/S), sh = Math.floor(h/S);
+  const keyAt = i => px[i+3] < 128 ? -1 : (px[i] >> 3) << 10 | (px[i+1] >> 3) << 5 | (px[i+2] >> 3);
+  // 1) small copy (every 4th pixel), group touching pixels of the same colour
+  const key = new Int32Array(sw*sh); let clear = 0;
+  for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++){
+    const k = keyAt(((y*S + 2)*w + x*S + 2)*4); key[y*sw + x] = k; if (k === -1) clear++;
+  }
+  const seeThrough = clear > sw*sh*0.01;
+  const label = new Int32Array(sw*sh).fill(-1), comps = [], stack = [];
+  for (let s0 = 0; s0 < sw*sh; s0++){
+    if (label[s0] !== -1) continue;
+    const k = key[s0], c = {key: k, n: 0, x0: sw, y0: sh, x1: 0, y1: 0}; label[s0] = comps.length; stack.push(s0);
+    while (stack.length){
+      const i = stack.pop(), x = i % sw, y = (i - x) / sw; c.n++;
+      if (x < c.x0) c.x0 = x; if (x > c.x1) c.x1 = x; if (y < c.y0) c.y0 = y; if (y > c.y1) c.y1 = y;
+      for (const j of [x > 0 ? i-1 : -1, x < sw-1 ? i+1 : -1, y > 0 ? i-sw : -1, y < sh-1 ? i+sw : -1])
+        if (j >= 0 && label[j] === -1 && key[j] === k){ label[j] = comps.length; stack.push(j); }
+    }
+    comps.push(c);
+  }
+  // 2) slot-like: big, mostly-filled rectangle, not touching the page edge
+  let cands = comps.filter(c => {
+    const bw = c.x1 - c.x0 + 1, bh = c.y1 - c.y0 + 1;
+    return (!seeThrough || c.key === -1) && bw >= sw*0.08 && bh >= sh*0.08 && c.n >= bw*bh*0.7
+      && c.x0 > 0 && c.y0 > 0 && c.x1 < sw-1 && c.y1 < sh-1;
+  });
+  if (!seeThrough && cands.length){   // keep the placeholder colour that covers the most area
+    const area = {}; for (const c of cands) area[c.key] = (area[c.key] || 0) + c.n;
+    const best = +Object.keys(area).sort((a, b) => area[b] - area[a])[0];
+    cands = cands.filter(c => c.key === best);
+  }
+  // 3) exact edges at full size: the line where most pixels (middle 60%) match the slot
+  const slots = cands.map(c => {
+    const match = (x, y) => x >= 0 && y >= 0 && x < w && y < h && keyAt((y*w + x)*4) === c.key;
+    let x0 = c.x0*S, x1 = (c.x1 + 1)*S, y0 = c.y0*S, y1 = (c.y1 + 1)*S;
+    const colHit = (x, a, b) => { let m = 0, t = 0; for (let y = a; y < b; y += 2){ t++; if (match(x, y)) m++; } return m > t/2; };
+    const rowHit = (y, a, b) => { let m = 0, t = 0; for (let x = a; x < b; x += 2){ t++; if (match(x, y)) m++; } return m > t/2; };
+    const ya = Math.round(y0 + (y1-y0)*0.2), yb = Math.round(y1 - (y1-y0)*0.2), xa = Math.round(x0 + (x1-x0)*0.2), xb = Math.round(x1 - (x1-x0)*0.2);
+    const R = 2*S;
+    const L = [...Array(2*R+1).keys()].map(d => x0 - R + d).find(x => colHit(x, ya, yb)) ?? x0;
+    const Rt = [...Array(2*R+1).keys()].map(d => x1 + R - d).find(x => colHit(x, ya, yb)) ?? x1 - 1;
+    const T = [...Array(2*R+1).keys()].map(d => y0 - R + d).find(y => rowHit(y, xa, xb)) ?? y0;
+    const B = [...Array(2*R+1).keys()].map(d => y1 + R - d).find(y => rowHit(y, xa, xb)) ?? y1 - 1;
+    // rounded corners: how far in along the diagonal the slot starts (r = t / (1 - 1/√2))
+    const corner = (cx, cy, dx, dy) => { for (let t = 0; t < Math.min(Rt-L, B-T)/2; t++) if (match(cx + dx*t, cy + dy*t)) return t / (1 - Math.SQRT1_2); return 0; };
+    const r = [corner(L, T, 1, 1), corner(Rt, T, -1, 1), corner(L, B, 1, -1), corner(Rt, B, -1, -1)].sort((a, b) => a - b)[1];
+    return {x: L, y: T, w: Rt - L + 1, h: B - T + 1, r};
+  });
+  // background: the most common colour outside the slots
+  const counts = new Map(); let bg = null;
+  for (let i = 0; i < sw*sh; i++){ const k = key[i]; if (k !== -1 && !cands.includes(comps[label[i]])) counts.set(k, (counts.get(k) || 0) + 1); }
+  const bgKey = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  if (bgKey !== undefined){ const i = key.indexOf(bgKey), x = i % sw, y = (i - x) / sw, o = ((y*S + 2)*w + x*S + 2)*4;
+    bg = "#" + [px[o], px[o+1], px[o+2]].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase(); }
+  const radii = slots.map(s => s.r).sort((a, b) => a - b), r = radii.length ? radii[radii.length >> 1] : 0;
+  return {slots, radius: r < 4 ? 0 : Math.round(r), background: bg, seeThrough};
+}
+/* reading order: top to bottom, then left to right */
+function readingOrder(slots){
+  const out = [...slots].sort((a, b) => a.y - b.y), rows = [];
+  for (const s of out){ const row = rows.find(r => Math.abs(r[0].y - s.y) < s.h/4); row ? row.push(s) : rows.push([s]); }
+  return rows.flatMap(r => r.sort((a, b) => a.x - b.x));
+}
+async function importTemplate(file){
+  try {
+    toast(`Reading ${file.name}…`);
+    let px, w, h, guides = null;
+    if (isPsd(file)){
+      const info = parsePsd(await file.slice(0, 32 * 1024 * 1024).arrayBuffer());
+      if (info.guides.length) guides = info;
+      ({px, w, h} = await psdPixels(file));
+    } else {
+      const img = await loadFile(file); [w, h] = dims(img);
+      const c = document.createElement("canvas"); c.width = w; c.height = h;
+      const x = c.getContext("2d", {willReadFrequently: true}); x.drawImage(img, 0, 0); px = x.getImageData(0, 0, w, h).data;
+    }
+    const found = findSlots(px, w, h);
+    if (!found.slots.length)
+      return toast(`No photo slots found in ${file.name}. Slots need to be see-through, or flat grey/white boxes.`, true);
+    const g = {...BASE, ...CONFIG.defaults, name: file.name.replace(/\.(psd|png)$/i, "").trim() || "imported",
+               machine: $("#machinePick").value || "", width: w, height: h, radius: found.radius,
+               background: found.background || st.g.background, background_image: "", text: "", cut: "none"};
+    if (guides) applyGuides(g, guides);
+    // first half, then second half, each in reading order, so "same photos" pairs slot 1 with slot 1
+    const halfOf = s => g.cut === "vertical" ? +(s.x + s.w/2 >= w/2) : g.cut === "horizontal" ? +(s.y + s.h/2 >= h/2) : 0;
+    const halves = [0, 1].map(k => readingOrder(found.slots.filter(s => halfOf(s) === k)));
+    g.slots = halves.flat().map(s => [s.x, s.y, s.w, s.h]);
+    const first = halves[0].length ? halves[0] : halves[1];
+    g.rows = Math.min(20, new Set(first.map(s => Math.round(s.y / 20))).size);
+    g.cols = Math.min(20, Math.max(1, Math.round(first.length / g.rows)));
+    // already in the list? (same size and photo slots) -> just open that one
+    const key = b => JSON.stringify([b.x, b.y, b.w, b.h]), mine = computeBoxes(g).map(key).sort().join();
+    const same = CONFIG.grids.find(p => { const f = {...BASE, ...CONFIG.defaults, ...p}, bs = computeBoxes(f);
+      return f.width === w && f.height === h && bs && bs.map(key).sort().join() === mine; });
+    if (same){ $("#machinePick").value = same.machine || ""; applyPreset(same.name);
+      return toast(`${file.name} is already in the list as “${same.name}”${same.machine ? ` (${same.machine})` : ""}. Opened it.`); }
+    // a free name, then add it to the list straight away
+    const baseName = g.name; for (let n = 2; CONFIG.grids.some(p => p.name === g.name); n++) g.name = `${baseName}-${n}`;
+    let added = false;
+    if (API){
+      const entry = {name: g.name, rows: g.rows, cols: g.cols}, d = {...BASE, ...CONFIG.defaults};
+      for (const [k, v] of Object.entries(g)) if (!(k in entry) && JSON.stringify(v) !== JSON.stringify(d[k])) entry[k] = v;
+      try { await BE.savePreset(entry); CONFIG = await BE.grids(); fillPresets(); added = true; }
+      catch (err) { toast("Couldn't add it to the list: " + (err.message || err), true); }
+    }
+    const edits = editedStyle(); presetBase = clone(g);
+    st.g = withEdits(g, edits); st.psd = guides ? {name: file.name, ...guides} : null;
+    $("#preset").value = added ? g.name : "__custom";
+    syncGridInputs(); await setBackground(""); relayout(); syncSel(); renderGallery();
+    const cutText = g.cut === "vertical" ? ", cut left | right" : g.cut === "horizontal" ? ", cut top / bottom" : "";
+    const where = `the ${g.machine || "Default"} list`;
+    toast(`${file.name}: ${g.slots.length} photo slot${g.slots.length > 1 ? "s" : ""}${found.radius ? `, ${found.radius}px corners` : ""}${cutText}. ` +
+          (added ? `Added to ${where} as “${g.name}”.` : `Open the app with its templates folder to add it to the list.`) +
+          (!guides && isCutLike(g) ? ` If it's printed and cut in half, set that in Advanced → Print & cut, then Save layout.` : ""));
+  } catch (err) { toast(`Couldn't import ${file.name}: ${err.message}`, true); }
+}
+/* two matching halves side by side or stacked? (a PNG has no cut guides, so just a hint) */
+function isCutLike(g){
+  const s = g.slots || []; if (s.length < 2 || s.length % 2) return false;
+  return s.every(([x, y, w, h]) => s.some(([x2, y2, w2, h2]) => w2 === w && h2 === h && y2 === y && x2 !== x && Math.abs(x2 - (g.width - x - w)) <= 6));
+}
+const isTemplateFile = f => isPsd(f) || /\.png$/i.test(f.name);
+$("#importDrop").addEventListener("dragover", e => { e.preventDefault(); e.stopPropagation(); $("#importDrop").classList.add("over"); });
+$("#importDrop").addEventListener("dragleave", () => $("#importDrop").classList.remove("over"));
+$("#importDrop").addEventListener("drop", e => { e.preventDefault(); e.stopPropagation(); $("#importDrop").classList.remove("over");
+  const f = [...e.dataTransfer.files].find(isTemplateFile); f ? importTemplate(f) : toast("Drop a .psd or .png template", true); });
+function pickTemplateFile(){ const p = $("#psdPicker"); p.value = "";
+  p.onchange = () => p.files[0] && importTemplate(p.files[0]); p.click(); }
+$("#importDrop").addEventListener("click", pickTemplateFile);
+$("#newFromFile").onclick = pickTemplateFile;
 const frameInput = (id, fn) => $("#" + id).addEventListener("input", e => { fn(e.target); buildFrame(); render(); });
 frameInput("background", el => st.g.background = el.value);
 frameInput("slot", el => st.g.slot = el.value);
+frameInput("film_holes", el => st.g.film_holes = el.value);
+frameInput("bg_opacity", el => st.g.bg_opacity = +el.value);
+for (const k of ["bg_rotate", "bg_zoom", "bg_x", "bg_y"]) frameInput(k, el => st.g[k] = +el.value);
+const BG_DEFAULTS = {bg_fit: "cover", bg_rotate: 0, bg_zoom: 100, bg_x: 0, bg_y: 0};
+function syncBgOpacity(){
+  const has = !!st.bgImg; $("#bgImageOpts").hidden = !has;
+  $("#bgColourLabel").textContent = has ? "Colour (under the image)" : "Colour";
+  const g = st.g || {};
+  $("#bg_opacity").value = g.bg_opacity ?? 100;
+  for (const k of ["bg_rotate", "bg_zoom", "bg_x", "bg_y"]) $("#" + k).value = g[k] ?? BG_DEFAULTS[k];
+  for (const b of document.querySelectorAll("#bgFitSeg button")) b.classList.toggle("on", b.dataset.fit === (g.bg_fit || "cover"));
+  paintRanges();
+}
+const bgChanged = () => { syncBgOpacity(); buildFrame(); render(); };
+/* ---------- paper texture controls ---------- */
+function renderTexTiles(){
+  const box = $("#texTiles"), cur = st.g?.texture?.type || "";
+  if (!box.children.length){
+    for (const [type, name] of [["", "None"], ...TEXTURES]){
+      const b = document.createElement("button"); b.type = "button"; b.dataset.type = type; b.title = name;
+      const c = document.createElement("canvas"); c.width = c.height = 64; b.append(c);
+      const lab = document.createElement("span"); lab.textContent = name; b.append(lab);
+      b.onclick = () => { st.g.texture = type ? {type, strength: st.g.texture?.strength ?? 60} : null; syncTexture(); buildFrame(); render(); };
+      box.append(b);
+    }
+  }
+  for (const b of box.children){   // preview each texture on the current background colour
+    b.classList.toggle("on", b.dataset.type === cur);
+    const c = b.querySelector("canvas"), x = c.getContext("2d");
+    x.fillStyle = st.g?.background || "#888888"; x.fillRect(0, 0, 64, 64);
+    if (b.dataset.type) applyTexture(x, {type: b.dataset.type, strength: 90}, {x: 0, y: 0, w: 64, h: 64});
+  }
+}
+function syncTexture(){
+  renderTexTiles();
+  $("#texStrengthRow").hidden = !st.g?.texture?.type;
+  $("#tex_strength").value = st.g?.texture?.strength ?? 60; paintRanges();
+}
+frameInput("tex_strength", el => { if (st.g.texture) st.g.texture.strength = +el.value; });
+$("#background").addEventListener("input", () => renderTexTiles());
+
+/* ---------- gradient controls ---------- */
+const GRAD_PRESETS = [
+  {name: "Aurora", type: "corners", colors: ["#4B4FCF", "#C5527A", "#3EB8D3", "#B9AE6E"], angle: 180},
+  {name: "Sunrise", type: "corners", colors: ["#00B4FF", "#0055FF", "#F9B935", "#FF5236"], angle: 180},
+  {name: "Peach", type: "linear", colors: ["#FFD3A5", "#FD6585"], angle: 160},
+  {name: "Ocean", type: "linear", colors: ["#2E3192", "#1BFFFF"], angle: 180},
+  {name: "Blush", type: "radial", colors: ["#FBC2EB", "#A6C1EE"], angle: 180},
+  {name: "Night", type: "linear", colors: ["#0F2027", "#203A43", "#2C5364"], angle: 160},
+  {name: "Mint", type: "linear", colors: ["#D4FC79", "#96E6A1"], angle: 135},
+  {name: "Ink", type: "radial", colors: ["#64748B", "#0F172A"], angle: 180},
+];
+let lastGradient = null;
+const gradCopy = g => JSON.parse(JSON.stringify(g));
+function gradChanged(rebuildStops = false){ if (rebuildStops) buildGradStops(); drawGradPreview(); buildFrame(); render(); }
+function drawGradPreview(){
+  const gr = st.g?.bg_gradient, c = $("#gradPreview"); if (!gr) return;
+  const x = c.getContext("2d"); x.clearRect(0, 0, c.width, c.height); drawGradient(x, gr, {x: 0, y: 0, w: c.width, h: c.height});
+}
+function buildGradStops(){
+  const gr = st.g.bg_gradient, box = $("#gradStops"); box.innerHTML = "";
+  const corners = gr.type === "corners"; box.classList.toggle("corners", corners);
+  const names = corners ? ["Top left", "Top right", "Bottom left", "Bottom right"] : gr.colors.map((_, i) => `Colour ${i + 1}`);
+  gr.colors.forEach((col, i) => {
+    const row = document.createElement("div"); row.className = "gstop"; row.title = names[i];
+    const inp = document.createElement("input"); inp.type = "color"; inp.value = parseColor(col) || "#000000"; row.append(inp); box.append(row);
+    colorField(inp);
+    inp.addEventListener("input", () => { gr.colors[i] = inp.value; gradChanged(); });
+    if (!corners && gr.colors.length > 2){
+      const del = document.createElement("button"); del.type = "button"; del.className = "lbtn del"; del.title = "Remove this colour"; del.innerHTML = lsvg("x");
+      del.onclick = () => { gr.colors.splice(i, 1); gradChanged(true); }; row.append(del);
+    }
+  });
+  if (!corners && gr.colors.length < 4){
+    const add = document.createElement("button"); add.type = "button"; add.textContent = "+ Add colour";
+    add.onclick = () => { gr.colors.push(gr.colors[gr.colors.length - 1]); gradChanged(true); }; box.append(add);
+  }
+}
+function syncGradient(){
+  const gr = st.g?.bg_gradient;
+  for (const b of document.querySelectorAll("#bgModeSeg button")) b.classList.toggle("on", b.dataset.mode === (gr ? "gradient" : "solid"));
+  $("#gradOpts").hidden = !gr; $("#bgColourRow").hidden = !!gr;
+  if (!gr) return;
+  for (const b of document.querySelectorAll("#gradTypeSeg button")) b.classList.toggle("on", b.dataset.type === gr.type);
+  $("#gradAngleRow").hidden = gr.type !== "linear"; $("#grad_angle").value = gr.angle ?? 180;
+  buildGradStops(); drawGradPreview(); paintRanges();
+}
+for (const b of document.querySelectorAll("#bgModeSeg button")) b.onclick = () => {
+  if (b.dataset.mode === "gradient"){ if (!st.g.bg_gradient) st.g.bg_gradient = gradCopy(lastGradient || GRAD_PRESETS[0]); }
+  else if (st.g.bg_gradient){ lastGradient = gradCopy(st.g.bg_gradient); st.g.bg_gradient = null; }
+  syncGradient(); buildFrame(); render();
+};
+for (const b of document.querySelectorAll("#gradTypeSeg button")) b.onclick = () => {
+  const gr = st.g.bg_gradient; if (!gr || gr.type === b.dataset.type) return;
+  gr.type = b.dataset.type;
+  if (gr.type === "corners") while (gr.colors.length < 4) gr.colors.push(gr.colors[gr.colors.length - 1]);
+  else if (gr.colors.length > 4) gr.colors.length = 4;
+  syncGradient(); buildFrame(); render();
+};
+frameInput("grad_angle", el => { if (st.g.bg_gradient) st.g.bg_gradient.angle = +el.value; drawGradPreview(); });
+for (const pr of GRAD_PRESETS){
+  const b = document.createElement("button"); b.type = "button"; b.title = pr.name;
+  const c = document.createElement("canvas"); c.width = c.height = 60; drawGradient(c.getContext("2d"), pr, {x: 0, y: 0, w: 60, h: 60}); b.append(c);
+  b.onclick = () => { st.g.bg_gradient = gradCopy(pr); syncGradient(); buildFrame(); render(); };
+  $("#gradPresets").append(b);
+}
+for (const b of document.querySelectorAll("#bgFitSeg button")) b.onclick = () => { st.g.bg_fit = b.dataset.fit; bgChanged(); };
+$("#bgRot90").onclick = () => { let r = (st.g.bg_rotate || 0) + 90; if (r > 180) r -= 360; st.g.bg_rotate = r; bgChanged(); };
+$("#bgImgReset").onclick = () => { Object.assign(st.g, BG_DEFAULTS); bgChanged(); };
+frameInput("film_clear", el => { st.g.film_holes = el.checked ? "transparent" : $("#film_holes").value; $("#film_holes").disabled = el.checked; });
+frameInput("radiusRange", el => { st.g.radius = +el.value; $("#radius").value = el.value; });
 frameInput("text", el => st.g.text = el.value);
 frameInput("text_font", el => { st.g.text_font = el.value; checkFont(el.value); });
 frameInput("text_color", el => st.g.text_color = el.value);
@@ -1021,6 +2862,7 @@ async function setBackground(path, img=null){
   try { st.bgImg = img || (bgFile && API ? await loadImg(await BE.fileUrl("Backgrounds", bgFile)) : null); }
   catch { st.bgImg = null; toast(`Background not found: ${path}`, true); }
   document.querySelectorAll("#bgList button").forEach(b => b.classList.toggle("on", (b.dataset.path || "") === (st.g?.background_image || "")));
+  syncBgOpacity();
   buildFrame(); render();
 }
 async function loadBackgroundList(){
@@ -1041,12 +2883,35 @@ async function loadBackgroundList(){
   }
   box.querySelectorAll("button").forEach(b => b.classList.toggle("on", (b.dataset.path || "") === (st.g?.background_image || "")));
 }
-dropZone($("#bgDrop"), async files => {
-  const f = files[0];
+async function useBackgroundFile(f){
   try {
     if (API){ const name = await upload("Backgrounds", f); await loadBackgroundList(); await setBackground("Backgrounds/" + name); }
     else await setBackground("", await loadFile(f));
   } catch (err) { toast(err.message, true); }
+}
+dropZone($("#bgDrop"), files => useBackgroundFile(files[0]));
+
+/* ---------- paste (⌘V) an image: where it goes depends on the open tool ----------
+   Background → background image, Pattern → pattern item, Photos → next empty slot, anything else → sticker.
+   Pasting text into text boxes is left alone. */
+document.addEventListener("paste", async e => {
+  const items = [...(e.clipboardData?.items || [])].filter(it => it.kind === "file" && it.type.startsWith("image/"));
+  if (!items.length || !st.g) return;
+  e.preventDefault();
+  const stamp = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
+  const files = items.map((it, i) => { const f = it.getAsFile(), ext = (f.type.split("/")[1] || "png").replace("jpeg", "jpg");
+    return new File([f], `pasted-${stamp}${items.length > 1 ? "-" + (i + 1) : ""}.${ext}`, {type: f.type}); });
+  const tool = document.querySelector("#toolbar [data-tool].active")?.dataset.tool;
+  try {
+    if (tool === "background"){ await useBackgroundFile(files[0]); toast("Pasted as the background image"); }
+    else if (tool === "pattern"){ await patternFiles(files); toast(`Pasted into the pattern`); }
+    else if (tool === "photos"){ await addPhotos(files); toast("Pasted into the photo slots"); }
+    else {
+      const [px, py] = defaultPoint();
+      for (const f of files) addImageSticker(trimmed(await loadFile(f), "pasted image"), px, py, 0.3, "Pasted image");
+      toast("Pasted as a sticker (open Background or Pattern first to paste there instead)");
+    }
+  } catch (err) { toast("Couldn't paste that image: " + (err.message || err), true); }
 });
 
 /* ---------- saving ---------- */
@@ -1103,7 +2968,7 @@ $("#presetBtn").onclick = async () => {
   for (const [key, v] of Object.entries(st.g)) if (!(key in g) && v !== d[key]) g[key] = v;
   try {
     const j = await BE.savePreset(g);
-    CONFIG = await BE.grids(); fillPresets(); $("#preset").value = g.name;
+    CONFIG = await BE.grids(); fillPresets(); $("#preset").value = g.name; presetBase = clone(st.g);   // saved = new starting point
     toast(`${j.updated ? "Updated" : "Added"} “${g.name}” in grids.json`);
   } catch (err) { toast("Couldn't save layout: " + (err.message || err), true); }
 };

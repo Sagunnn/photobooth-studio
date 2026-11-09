@@ -1,6 +1,7 @@
 # Design assets and outputs stay local (large / private)
 *.psd
 /*.png
+/Original Templates/
 /Backgrounds/
 /Stickers/
 /Generated Templates/
