@@ -15,3 +15,7 @@ studio/src-tauri/gen/
 __pycache__/
 
 .DS_Store
+
+# Website build output (tools/build_site.js)
+/site/
+node_modules/

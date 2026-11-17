@@ -1,7 +1,13 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Permissions for the main window",
-  "windows": ["main"],
-  "permissions": ["core:default", "dialog:default"]
+  "description": "Permissions for the app's windows (the first one and any opened with New window)",
+  "windows": [
+    "main",
+    "studio-*"
+  ],
+  "permissions": [
+    "core:default",
+    "dialog:default"
+  ]
 }

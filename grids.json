@@ -24,19 +24,276 @@
     "film_holes": "#FFFFFF"
   },
   "grids": [
-    { "name": "1-cut",            "rows": 1, "cols": 1 },
-    { "name": "2-cut",            "rows": 2, "cols": 1 },
-    { "name": "4-cut",            "rows": 2, "cols": 2 },
-    { "name": "4-cut-strip",      "rows": 4, "cols": 1, "width": 960 },
-    { "name": "4-cut-logo-top",   "rows": 2, "cols": 2, "header": 700, "footer": 200 },
-    { "name": "6-cut",            "rows": 3, "cols": 2 },
-    { "name": "6-cut-horizontal", "rows": 2, "cols": 3, "width": 2860, "height": 1920, "footer": 230 },
-    { "name": "8-cut",            "rows": 4, "cols": 2 },
-    { "name": "9-cut",            "rows": 3, "cols": 3, "width": 2860, "height": 2860 },
-    { "name": "2-cut-split",      "rows": 2, "cols": 1, "cut": "vertical", "header": 154, "gap": 78, "footer": 318 },
-    { "name": "3-cut-split",      "rows": 3, "cols": 1, "cut": "vertical", "header": 78, "gap": 52, "footer": 371 },
-    { "name": "4-cut-split",      "rows": 4, "cols": 1, "cut": "vertical", "header": 45, "gap": 35, "footer": 203 },
-    { "name": "3-cut-split-horizontal", "rows": 1, "cols": 3, "cut": "horizontal", "width": 2860, "height": 1920, "header": 13, "gap": 47, "footer": 278 },
-    { "name": "g14-6cut-split",   "machine": "G14", "rows": 3, "cols": 1, "cut": "vertical", "margin": 115, "gap": 40, "footer": 925, "cut_gap": 130, "background": "#FFFFFF" }
+    {
+      "name": "1-cut",
+      "rows": 1,
+      "cols": 1
+    },
+    {
+      "name": "2-cut",
+      "rows": 2,
+      "cols": 1
+    },
+    {
+      "name": "4-cut",
+      "rows": 2,
+      "cols": 2
+    },
+    {
+      "name": "4-cut-strip",
+      "rows": 4,
+      "cols": 1,
+      "width": 960
+    },
+    {
+      "name": "4-cut-logo-top",
+      "rows": 2,
+      "cols": 2,
+      "header": 700,
+      "footer": 200
+    },
+    {
+      "name": "6-cut-horizontal",
+      "rows": 2,
+      "cols": 3,
+      "width": 2860,
+      "height": 1920,
+      "footer": 230
+    },
+    {
+      "name": "8-cut",
+      "rows": 4,
+      "cols": 2
+    },
+    {
+      "name": "9-cut",
+      "rows": 3,
+      "cols": 3,
+      "width": 2860,
+      "height": 2860
+    },
+    {
+      "name": "2-cut-split",
+      "rows": 2,
+      "cols": 1,
+      "cut": "vertical",
+      "header": 154,
+      "gap": 78,
+      "footer": 318
+    },
+    {
+      "name": "4-cut-split",
+      "rows": 4,
+      "cols": 1,
+      "cut": "vertical",
+      "header": 45,
+      "gap": 35,
+      "footer": 203
+    },
+    {
+      "name": "3-cut-split-horizontal",
+      "rows": 1,
+      "cols": 3,
+      "cut": "horizontal",
+      "width": 2860,
+      "height": 1920,
+      "header": 13,
+      "gap": 47,
+      "footer": 278
+    },
+    {
+      "name": "g14-6cut-split",
+      "machine": "G14",
+      "rows": 3,
+      "cols": 1,
+      "cut": "vertical",
+      "margin": 115,
+      "gap": 40,
+      "footer": 925,
+      "cut_gap": 130,
+      "background": "#FFFFFF"
+    },
+    {
+      "name": "6 Image Template",
+      "rows": 3,
+      "cols": 2,
+      "background": "#FFFFFF",
+      "slots": [
+        [
+          106,
+          168,
+          792,
+          712
+        ],
+        [
+          1021,
+          168,
+          792,
+          712
+        ],
+        [
+          106,
+          960,
+          792,
+          738
+        ],
+        [
+          1021,
+          960,
+          792,
+          738
+        ],
+        [
+          106,
+          1754,
+          792,
+          735
+        ],
+        [
+          1021,
+          1754,
+          792,
+          735
+        ]
+      ]
+    },
+    {
+      "name": "1.6宫格3导出示例",
+      "rows": 3,
+      "cols": 1,
+      "background": "#001548",
+      "cut": "vertical",
+      "cut_gap": 130,
+      "machine": "G14",
+      "slots": [
+        [
+          115,
+          520,
+          780,
+          580
+        ],
+        [
+          115,
+          1140,
+          780,
+          580
+        ],
+        [
+          115,
+          1760,
+          780,
+          580
+        ],
+        [
+          1025,
+          520,
+          780,
+          580
+        ],
+        [
+          1025,
+          1140,
+          780,
+          580
+        ],
+        [
+          1025,
+          1760,
+          780,
+          580
+        ]
+      ]
+    },
+    {
+      "name": "14-1宫格",
+      "rows": 1,
+      "cols": 1,
+      "background": "#76210E",
+      "machine": "G14",
+      "slots": [
+        [
+          202,
+          617,
+          1516,
+          1272
+        ]
+      ]
+    },
+    {
+      "name": "裁切2宫格-1",
+      "rows": 2,
+      "cols": 1,
+      "cut": "vertical",
+      "slots": [
+        [
+          90,
+          162,
+          825,
+          1165
+        ],
+        [
+          90,
+          1397,
+          825,
+          1165
+        ],
+        [
+          1005,
+          162,
+          825,
+          1165
+        ],
+        [
+          1005,
+          1397,
+          825,
+          1165
+        ]
+      ]
+    },
+    {
+      "name": "split6",
+      "rows": 3,
+      "cols": 2,
+      "background": "#335E7E",
+      "slots": [
+        [
+          137,
+          100,
+          760,
+          760
+        ],
+        [
+          1023,
+          100,
+          760,
+          760
+        ],
+        [
+          137,
+          899,
+          760,
+          760
+        ],
+        [
+          1023,
+          899,
+          760,
+          760
+        ],
+        [
+          137,
+          1697,
+          760,
+          760
+        ],
+        [
+          1023,
+          1697,
+          760,
+          760
+        ]
+      ]
+    }
   ]
 }

@@ -115,6 +115,11 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_json(json.loads(CONFIG.read_text(encoding="utf-8")))
         if path == "/api/fonts":
             return self.send_json({"fonts": system_fonts()})
+        if path == "/api/fetch":
+            try:
+                return self.fetch_url(q.get("url", [""])[0])
+            except Exception as e:
+                return self.send_json({"error": str(e)}, 400)
         if path == "/api/list":
             folder = FOLDERS.get(q.get("folder", [""])[0])
             if not folder:
@@ -138,6 +143,8 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.upload(q)
             if url.path == "/api/grids":
                 return self.save_preset()
+            if url.path == "/api/grids/delete":
+                return self.delete_preset(q)
             if url.path == "/api/delete":
                 return self.delete_file(q)
             self.send_error(404)
@@ -205,6 +212,42 @@ class Handler(SimpleHTTPRequestHandler):
             grids[idx] = grid
         CONFIG.write_text(json.dumps(cfg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         self.send_json({"ok": True, "updated": idx is not None})
+
+
+    def fetch_url(self, url):
+        """Download an image from a web link (graphics pasted from Canva or a web page)."""
+        if not url.lower().startswith(("http://", "https://")):
+            raise ValueError("only web links can be fetched")
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Macintosh) PhotoboothStudio/1.0",
+                                                   "Accept": "image/*,*/*;q=0.8"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            ctype = r.headers.get("Content-Type", "application/octet-stream").split(";")[0].strip()
+            data = r.read(MAX_UPLOAD + 1)
+        if len(data) > MAX_UPLOAD:
+            raise ValueError("that file is too big")
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def delete_preset(self, q):
+        """Remove a layout from grids.json; a copy goes to Deleted Files/Layouts/ so it can be put back."""
+        name = q.get("name", "")
+        cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
+        grids = cfg["grids"]
+        idx = next((i for i, g in enumerate(grids) if g["name"] == name), None)
+        if idx is None:
+            raise ValueError(f"{name} not found")
+        if len(grids) <= 1:
+            raise ValueError("can't delete the last template")
+        removed = grids.pop(idx)
+        folder = ROOT / "Deleted Files" / "Layouts"
+        folder.mkdir(parents=True, exist_ok=True)
+        backup = unique(folder / f"{clean(name) or 'layout'}.json")
+        backup.write_text(json.dumps(removed, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        CONFIG.write_text(json.dumps(cfg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        self.send_json({"ok": True, "backup": str(backup.relative_to(ROOT))})
 
 
 def main():
